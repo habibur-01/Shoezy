@@ -8,9 +8,11 @@
   --color-white: #ffffff;
   --color-black: #141414;
   --color-text: #222222;
+  --text-gray: #909090;
   --color-red: #dc0b21;
   --color-red-2: #df1a29;
   --card-background: #939393;
+  --color-gray: #f5f5f5;
 }
 
 .dark {
@@ -29,6 +31,19 @@ body {
 
 @layer components {
   .btn-black {
-    @apply bg-[var(--color-black)] text-[var(--color-white)] uppercase text-base font-medium px-5 py-2.5 hover:bg-[var(--color-black)]/75 hover:cursor-pointer;
+    @apply bg-[var(--color-black)] text-[var(--color-white)] uppercase text-base font-medium px-5 py-2.5 hover:bg-[var(--color-black)]/75 transition-all hover:cursor-pointer;
+  }
+
+  .btn-red {
+    @apply bg-[var(--color-red-2)] text-[var(--color-white)] h-10 text-sm px-6 py-2 rounded-md hover:bg-[var(--color-red)] transition-colors cursor-pointer;
+  }
+
+}
+
+
+@layer utilities {
+  .shadow-all {
+    box-shadow: rgba(149, 157, 165, 0.15) 0px 4px 16px,
+      rgba(149, 157, 165, 0.1) 0px 0px 6px 2px;
   }
 }

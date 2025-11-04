@@ -140,7 +140,7 @@ const Signup = () => {
 
               <button
                 type="submit"
-                className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition"
+                className="w-full bg-green-600 text-white py-2 rounded-lg hover:cursor-pointer hover:bg-green-700 transition"
               >
                 {isLoading ? <LoadingSpinner /> : "Sign Up"}
               </button>

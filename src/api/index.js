@@ -1,4 +1,5 @@
 import axios from "axios";
+import { REFRESH_TOKEN_ENDPOINT } from "../endpoint";
 // import { REFRESH_TOKEN_ENDPOINT } from "../config"; // adjust path
 
 // ---------------------- Helper functions ----------------------
@@ -52,21 +53,22 @@ instance.interceptors.response.use(
     }
 
     // ---------------- Handle 401 → refresh token ----------------
+   
     if (error?.response?.status === 401 && origReq.headers?.Authorization) {
-      //   const refreshToken = localStorage.getItem("refresh-token");
-      //   if (refreshToken && _retry_count <= 5) {
-      //     _retry_count++;
-      //     delete origReq.headers.Authorization;
-      //     const newToken = await refreshAccessToken(refreshToken);
-      //     if (!newToken) {
-      //       localStorage.removeItem("access-token");
-      //       localStorage.removeItem("refresh-token");
-      //       window.location.href = "/login";
-      //       return Promise.reject(error);
-      //     }
-      //     origReq.headers.Authorization = `Bearer ${newToken}`;
-      //     return instance.request(origReq);
-      //   }
+        const refreshToken = localStorage.getItem("refreshToken");
+        if (refreshToken && _retry_count <= 5) {
+          _retry_count++;
+          delete origReq.headers.Authorization;
+          const newToken = await refreshAccessToken(refreshToken);
+          if (!newToken) {
+            localStorage.removeItem("authToken");
+            localStorage.removeItem("refreshToken");
+            window.location.href = "/login";
+            return Promise.reject(error);
+          }
+          origReq.headers.Authorization = `Bearer ${newToken}`;
+          return instance.request(origReq);
+        }
     }
 
     return Promise.reject(error);
@@ -74,25 +76,25 @@ instance.interceptors.response.use(
 );
 
 // ---------------------- Refresh token function ----------------------
-// async function refreshAccessToken(refreshToken) {
-//   try {
-//     const response = await axios.post(
-//       `${import.meta.env.VITE_API_BASE_URL}${REFRESH_TOKEN_ENDPOINT}`,
-//       {},
-//       {
-//         headers: {
-//           "Content-Type": "application/json",
-//           Authorization: `Bearer ${refreshToken}`,
-//         },
-//       }
-//     );
-//     const newToken = response?.data?.token;
-//     if (newToken) localStorage.setItem("access-token", newToken);
-//     return newToken || null;
-//   } catch (err) {
-//     console.log("🚀 Refresh token error:", err.message);
-//     return null;
-//   }
-// }
+async function refreshAccessToken(refreshToken) {
+  try {
+    const response = await axios.post(
+      `${import.meta.env.VITE_API_BASE_URL}${REFRESH_TOKEN_ENDPOINT}`,
+      { refresh_token: refreshToken },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          
+        },
+      }
+    );
+    const newToken = response?.data?.token;
+    if (newToken) localStorage.setItem("authToken", newToken);
+    return newToken || null;
+  } catch (err) {
+    console.log("🚀 Refresh token error:", err.message);
+    return null;
+  }
+}
 
 export default instance;

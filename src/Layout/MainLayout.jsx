@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { Outlet } from "react-router";
 import Navbar from "../components/common/navbar/Navbar";
 import Loader from "../components/common/loader/Loader";
+import Footer from "../components/common/Footer/Footer";
 
 const MainLayout = () => {
   return (
@@ -12,6 +13,7 @@ const MainLayout = () => {
           <Outlet />
         </div>
       </Suspense>
+      <Footer/>
     </div>
   );
 };

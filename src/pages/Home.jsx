@@ -7,7 +7,6 @@ import OfferSection from "../components/home/OfferSection";
 import FeaturedProduct from "../components/home/FeaturedProduct";
 import ShoeShowcase from "../components/home/ShoeShowcase ";
 import Testimonials from "../components/home/Testimonials";
-import Footer from "../components/home/Footer";
 
 const Home = () => {
   return (
@@ -20,7 +19,6 @@ const Home = () => {
       <FeaturedProduct />
       <ShoeShowcase />
       <Testimonials />
-      <Footer />
     </div>
   );
 };

@@ -6,6 +6,7 @@ import SizeSelector from "../components/Products/SizeSelectore";
 import AddToCart from "../components/Products/AddToCart.jsx";
 import Container from "../components/common/Container/Container.jsx";
 import DetailsTabSection from "../components/Products/DetailsTabSection.jsx";
+import Breadcrumb from "../components/common/Breadcrumb/Breadcrumb.jsx";
 
 const ProductDetails = () => {
   const thumbnails = [
@@ -22,7 +23,9 @@ const ProductDetails = () => {
 
   return (
     <Container>
-      <div></div>
+      <div>
+        <Breadcrumb/>
+      </div>
       <div className="flex  w-full">
         {/* Left: Images */}
         <div className="flex gap-4 w-1/2">

@@ -2,7 +2,7 @@ import React from "react";
 
 const ProductThumbnails = ({ thumbnails, selectedImage, onSelect }) => {
   return (
-    <div className="flex flex-col gap-2 w-1/6 h-[600px] overflow-y-auto">
+    <div className="flex flex-col justify-between w-1/6 h-[600px] overflow-y-auto">
       {thumbnails.map((img, idx) => (
         <img
           key={idx}

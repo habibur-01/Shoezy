@@ -21,7 +21,6 @@ const Login = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
-  const user = useSelector((state) => state.auth.user);
   const from = location.state?.from?.pathname || "/";
 
   // handle login user
@@ -115,7 +114,7 @@ const Login = () => {
 
               <button
                 type="submit"
-                className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
+                className="w-full bg-blue-600 text-white py-2 rounded-lg hover:cursor-pointer hover:bg-blue-700 transition"
               >
                 Login
               </button>
@@ -131,7 +130,7 @@ const Login = () => {
         </div>
 
         {/* Google Login */}
-        <button className="w-full border py-2 rounded-lg flex justify-center items-center space-x-2 hover:bg-gray-50 transition">
+        <button className="w-full border py-2 rounded-lg flex justify-center items-center space-x-2 hover:bg-gray-50 transition hover:cursor-pointer">
           <img
             src="https://www.svgrepo.com/show/355037/google.svg"
             alt="Google"
