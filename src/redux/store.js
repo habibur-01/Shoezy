@@ -1,17 +1,47 @@
-import { configureStore } from "@reduxjs/toolkit";
+import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import authReducer, { loggedIn, loggedOut, setUser } from "./features/auth/authSlice";
+import productReducer from "./features/product/productSlice";
+import cartReducer from "./features/cart/cartSlice";
+import reviewReducer from "./features/review/reviewSlice";
+import initialReducer from "./features/initial/initialSlice";
 import loaderSlice from "./features/loader/loaderSlice";
 import { jwtDecode } from "jwt-decode";
+import storage from "redux-persist/lib/storage";
+import { persistReducer, persistStore } from "redux-persist";
 
-const store = configureStore({
-  reducer: {
-    auth: authReducer,
-    loader: loaderSlice,
-  },
+// Combine reducers
+const rootReducer = combineReducers({
+  auth: authReducer,
+  initial: initialReducer,
+  product: productReducer,
+  review: reviewReducer,
+  cart: cartReducer,
+  loader: loaderSlice,
 });
 
-function isTokenValid(token) {
+// Persist config
+const persistConfig = {
+  key: "root",
+  storage,
+  whitelist: [ "cart", "initial"], // slices to persist
+};
 
+// Wrap root reducer with persistReducer
+const persistedReducer = persistReducer(persistConfig, rootReducer);
+
+// Configure store
+const store = configureStore({
+  reducer: persistedReducer,
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
+      serializableCheck: false, // required for redux-persist
+    }),
+});
+
+// Create persistor
+export const persistor = persistStore(store);
+
+function isTokenValid(token) {
   try {
     const decoded = jwtDecode(token);
     return decoded.exp * 1000 > Date.now();
@@ -33,29 +63,13 @@ const loadDataFromStorage = async () => {
       store.dispatch(loggedOut());
     }
 
-    if (user) store.dispatch(setUser(JSON.parse(user)));
+    if (user) {
+      store.dispatch(setUser(JSON.parse(user)))
+    };
   } catch (error) {
     console.error("Error loading data:", error);
   }
 };
-
-// Load data from AsyncStorage
-// const loadDataFromStorage = async () => {
-//   try {
-//     const credentials = localStorage.getItem("authToken");
-//     if (credentials) {
-//       store.dispatch(loggedIn());
-//     }
-//     const user = localStorage.getItem("user");
-//     console.log("🚀 ~ loadDataFromStorage ~ user:", user)
-//     if (user) {
-//       store.dispatch(setUser(JSON.parse(user)));
-//     }
-//   } catch (error) {
-//     console.log("Error loading data from store.js loadDataFromStorage:", error);
-//   }
-// };
-
 
 loadDataFromStorage();
 export default store;

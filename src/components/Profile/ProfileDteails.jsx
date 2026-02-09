@@ -1,9 +1,14 @@
 import React from "react";
+import { useSelector } from "react-redux";
 
 const ProfileDetails = () => {
+  const user = useSelector((state) => {
+    return state.auth.user;
+  });
+  console.log("🚀 ~ ProfileDetails ~ user:", user)
   return (
     <div className="flex-1 bg-[var(--color-background)] shadow-all rounded-xl px-16 py-12">
-      <h2 className="text-red-500 font-semibold mb-6 text-lg">Edit Your Profile</h2>
+      <h2 className="text-[var(--color-red)] font-semibold mb-6 text-lg">Edit Your Profile</h2>
 
       <form className="space-y-6">
         <div className="grid grid-cols-2 gap-6">
@@ -11,7 +16,7 @@ const ProfileDetails = () => {
             <label className="block text-sm text-gray-700 mb-1">First Name</label>
             <input
               type="text"
-              defaultValue="Md"
+              defaultValue={user?.username}
               className="w-full bg-[var(--color-gray)] rounded-md px-3 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-red-400"
             />
           </div>
@@ -19,7 +24,7 @@ const ProfileDetails = () => {
             <label className="block text-sm text-gray-700 mb-1">Last Name</label>
             <input
               type="text"
-              defaultValue="Rimel"
+              defaultValue={"Rimel"}
               className="w-full bg-[var(--color-gray)] rounded-md px-3 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-red-400"
             />
           </div>

@@ -16,7 +16,7 @@ const Breadcrumb = () => {
         const routeTo = `/${pathnames.slice(0, index + 1).join("/")}`;
         const isLast = index === pathnames.length - 1;
         return (
-          <span key={name} className="flex items-center space-x-1">
+          <span key={index} className="flex items-center space-x-1">
             <FaAngleRight className="text-gray-400" />
             {isLast ? (
               <span className="text-gray-500 font-medium">

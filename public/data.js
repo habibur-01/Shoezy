@@ -267,3 +267,204 @@ export const featuredProduct = [
     reviews: 85,
   },
 ];
+
+export const productData = [
+  {
+    name: "Adidas Cream & White Forum Low CI Sports Shoes",
+    short_description: "Stylish Adidas sports shoes",
+    description: "Adidas Cream & White Forum Low CI Sports Shoes designed for comfort and style.",
+    price: 29,
+    discount_price: 34,
+    sku: "shoe-001",
+    category: "Men's Shoes",
+    stock_quantity: 50,
+    sizes: ["7", "8", "9", "10"],
+    colors: ["Cream", "White"],
+    images: {
+      main: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&h=500&fit=crop",
+      gallery: [
+        "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&h=500&fit=crop",
+      ],
+    },
+   
+  },
+  {
+    name: "Adidas Men Trainers Ozelia Sports Shoes For Men",
+    short_description: "Lightweight Adidas trainers",
+    description: "Adidas Men Trainers Ozelia Sports Shoes designed for running and casual wear.",
+    price: 31,
+    discount_price: 34,
+    sku: "shoe-002",
+    category: "Men's Shoes",
+    stock_quantity: 40,
+    sizes: ["7", "8", "9", "10"],
+    colors: ["White", "Black"],
+    images: {
+      main: "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=500&h=500&fit=crop",
+      gallery: [
+        "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=500&h=500&fit=crop",
+      ],
+    },
+   
+  },
+  {
+    name: "Adidas Men Trainers Sterlinn Sports Shoes For Men",
+    short_description: "Comfortable Adidas sneakers",
+    description: "Adidas Men Trainers Sterlinn Sports Shoes for daily wear and sports.",
+    price: 35,
+    discount_price: 36,
+    sku: "shoe-003",
+    category: "Men's Shoes",
+    stock_quantity: 45,
+    sizes: ["7", "8", "9", "10"],
+    colors: ["Black", "White"],
+    images: {
+      main: "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=500&h=500&fit=crop",
+      gallery: [
+        "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=500&h=500&fit=crop",
+      ],
+    },
+   
+  },
+  {
+    name: "Nike Air Max Classic Running Shoes",
+    short_description: "Classic Nike running shoes",
+    description: "Nike Air Max Classic Running Shoes built for comfort and durability.",
+    price: 45,
+    discount_price: 60,
+    sku: "shoe-004",
+    category: "Men's Shoes",
+    stock_quantity: 35,
+    sizes: ["7", "8", "9", "10"],
+    colors: ["Black", "White"],
+    images: {
+      main: "https://images.unsplash.com/photo-1460353581641-37baddab0fa2?w=500&h=500&fit=crop",
+      gallery: [
+        "https://images.unsplash.com/photo-1460353581641-37baddab0fa2?w=500&h=500&fit=crop",
+      ],
+    },
+    created_at: new Date(),
+  },
+  {
+    name: "Puma Velocity Sports Sneakers",
+    short_description: "Stylish Puma sports sneakers",
+    description: "Puma Velocity Sports Sneakers perfect for casual and sports use.",
+    price: 38,
+    discount_price: 42,
+    sku: "shoe-005",
+    category: "Men's Shoes",
+    stock_quantity: 40,
+    sizes: ["7", "8", "9", "10"],
+    colors: ["Red", "White"],
+    images: {
+      main: "https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=500&h=500&fit=crop",
+      gallery: [
+        "https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=500&h=500&fit=crop",
+      ],
+    },
+   
+  },
+  {
+    name: "Reebok Classic Leather Shoes",
+    short_description: "Classic leather sneakers",
+    description: "Reebok Classic Leather Shoes designed for casual and sports wear.",
+    price: 55,
+    discount_price: 70,
+    sku: "shoe-006",
+    category: "Men's Shoes",
+    stock_quantity: 30,
+    sizes: ["7", "8", "9", "10"],
+    colors: ["White", "Black"],
+    images: {
+      main: "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=500&h=500&fit=crop",
+      gallery: [
+        "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=500&h=500&fit=crop",
+      ],
+    },
+    
+  },
+  {
+    name: "Hiking Climbing Mountain Shoes for Men",
+    short_description: "Durable hiking shoes",
+    description: "Durable hiking shoes designed for challenging trails.",
+    price: 1600,
+    discount_price: 2000,
+    sku: "shoe-007",
+    category: "Men's Shoes",
+    stock_quantity: 25,
+    sizes: ["7", "8", "9", "10", "11"],
+    colors: ["Brown", "Black"],
+    images: {
+      main: "/assets/images/products/imgi_3_01-12-346x346.jpg",
+      gallery: [
+        "/assets/images/products/img1_main.jpg",
+        "/assets/images/products/img1_cover.jpg",
+        "/assets/images/products/img1_3.jpg",
+      ],
+    },
+   
+  },
+  {
+    name: "Lightweight Running Sneakers",
+    short_description: "Breathable running shoes",
+    description: "Breathable sneakers for everyday running and comfort.",
+    price: 1400,
+    discount_price: 1800,
+    sku: "shoe-008",
+    category: "Men's Shoes",
+    stock_quantity: 20,
+    sizes: ["7", "8", "9", "10"],
+    colors: ["White", "Blue"],
+    images: {
+      main: "/assets/images/products/imgi_4_10-1-346x346.jpg",
+      gallery: [
+        "/assets/images/products/img2_main.jpg",
+        "/assets/images/products/img2_cover.jpg",
+        "/assets/images/products/img2_3.jpg",
+      ],
+    },
+   
+  },
+  {
+    name: "Women's Casual Slip-On Shoes",
+    short_description: "Easy slip-on casual shoes",
+    description: "Easy slip-on shoes perfect for casual outings.",
+    price: 1200,
+    discount_price: null,
+    sku: "shoe-009",
+    category: "Women's Shoes",
+    stock_quantity: 30,
+    sizes: ["6", "7", "8", "9"],
+    colors: ["Red", "White"],
+    images: {
+      main: "/assets/images/products/imgi_20_11-1-346x346.jpg",
+      gallery: [
+        "/assets/images/products/img3_main.jpg",
+        "/assets/images/products/img3_cover.jpg",
+        "/assets/images/products/img3_3.jpg",
+      ],
+    },
+   
+  },
+  {
+    name: "Men's Formal Leather Shoes",
+    short_description: "Classic leather formal shoes",
+    description: "Classic leather shoes ideal for office or formal events.",
+    price: 3200,
+    discount_price: 4000,
+    sku: "shoe-010",
+    category: "Men's Shoes",
+    stock_quantity: 15,
+    sizes: ["7", "8", "9", "10", "11"],
+    colors: ["Black", "Brown"],
+    images: {
+      main: "/assets/images/products/imgi_13_16-2-346x346.jpg",
+      gallery: [
+        "/assets/images/products/img4_main.jpg",
+        "/assets/images/products/img4_cover.jpg",
+        "/assets/images/products/img4_3.jpg",
+      ],
+    },
+   
+  },
+];

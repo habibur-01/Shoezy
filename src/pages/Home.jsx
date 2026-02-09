@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Banner from "../components/home/Banner";
 import SupportSection from "../components/home/SupportSection";
 import DiscountSection from "../components/home/DiscountSection";
@@ -9,6 +9,7 @@ import ShoeShowcase from "../components/home/ShoeShowcase ";
 import Testimonials from "../components/home/Testimonials";
 
 const Home = () => {
+ 
   return (
     <div>
       <Banner />

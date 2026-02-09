@@ -1,21 +1,16 @@
-
-import React from "react";
-import Sidebar from "../../components/Profile/Sidebar";
-import ProfileDetails from "../../components/Profile/ProfileDteails";
-import Breadcrumb from "../../components/common/Breadcrumb/Breadcrumb";
-import Container from "../../components/common/Container/Container";
-
+import React from 'react';
+import ProfileSidebar from '../../components/Profile/ProfileSidebar';
+import { Outlet } from 'react-router-dom';
 
 const ProfilePage = () => {
-  return (
-    <Container >
-      <Breadcrumb />
-      <div className="flex mt-6 mb-12">
-        <Sidebar />
-        <ProfileDetails />
-      </div>
-    </Container>
-  );
+    return (
+        <div className="flex mt-6 mb-12">
+            <ProfileSidebar />
+            <div className="flex-1">
+                <Outlet />
+            </div>
+        </div>
+    );
 };
 
 export default ProfilePage;

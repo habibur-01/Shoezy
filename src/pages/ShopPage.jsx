@@ -1,157 +1,187 @@
-import React, { useState, useEffect } from "react";
-import { FaList, FaThLarge } from "react-icons/fa";
-import ShopProductCard from "../components/Shop/ShopProductCard";
-import FilterSidebar from "../components/Shop/FilterSidebar";
-
-const mockProducts = [
-  {
-    id: 1,
-    name: "Adidas Cream & White Forum Low Cl Sports Shoes",
-    price: 29,
-    oldPrice: 34,
-    discount: 15,
-    color: "green",
-    category: "Clog Shoes",
-    rating: 4,
-    image:
-      "https://images.unsplash.com/photo-1606813902734-00c9c376b7b2?w=500&q=80",
-  },
-  {
-    id: 2,
-    name: "Adidas Men Trainers Sterlinn Sports Shoes",
-    price: 35,
-    oldPrice: 36,
-    discount: 0,
-    color: "blue",
-    category: "Sneakers",
-    rating: 4,
-    image:
-      "https://images.unsplash.com/photo-1600180758890-6d57bd5bb9f4?w=500&q=80",
-  },
-  {
-    id: 3,
-    name: "ASIAN Men's INNOVA-01 Sports Shoes For Men",
-    price: 37,
-    color: "white",
-    category: "Sneakers",
-    rating: 5,
-    image:
-      "https://images.unsplash.com/photo-1600180758890-6d57bd5bb9f4?w=500&q=80",
-  },
-];
+import { useEffect, useState } from "react";
+import FilterSidebar from "../components/Products/FilterSidebar";
+import Header from "../components/Products/Header";
+import MobileFilterDrawer from "../components/Products/MobileFilterDrawer";
+import Pagination from "../components/Products/Pagination";
+import ProductGrid from "../components/Products/ProductGrid";
+import Container from "../components/common/Container/Container";
+import Breadcrumb from "../components/common/Breadcrumb/Breadcrumb";
+import { getProducts, getSubCategories } from "../server/product/product";
+import { useDispatch, useSelector } from "react-redux";
+import { setProducts } from "../redux/features/product/productSlice";
+import { useNavigate, useParams } from "react-router-dom";
+import { setIsLoading } from "../redux/features/loader/loaderSlice";
 
 const ShopPage = () => {
-  const [products, setProducts] = useState(mockProducts);
-  const [filtered, setFiltered] = useState(mockProducts);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("");
-  const [selectedColor, setSelectedColor] = useState("");
-  const [sortOption, setSortOption] = useState("default");
-  const [gridView, setGridView] = useState(true);
+  const navigate = useNavigate();
+  const [viewMode, setViewMode] = useState('grid');
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const dispatch = useDispatch()
+  const products = useSelector(state => state.product.products)
+  const params = useParams()
+  const { categorySlug, subSlug } = params;
+  const [subCategories, setSubCategories] = useState([])
+  const [subCategory, setSubCategory] = useState(subSlug)
+  const [page, setPage] = useState(1);
+  const [limit] = useState(12); // or 8, or 20
+  const [totalPages, setTotalPages] = useState(1);
+  const [filters, setFilters] = useState({
+    colors: [],
+    priceRange: [],
+    sizes: [],
+    brands: [],
+    rating: 0
+  });
 
-  // Filter + Sort logic
   useEffect(() => {
-    let result = [...products];
+    setSubCategory(subSlug);
+  }, [subSlug]);
 
-    if (searchTerm)
-      result = result.filter((p) =>
-        p.name.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+  const colors = [
+    { name: 'Black', class: 'bg-black' },
+    { name: 'Blue', class: 'bg-blue-600' },
+    { name: 'Brown', class: 'bg-amber-700' },
+    { name: 'Gray', class: 'bg-gray-500' },
+    { name: 'Green', class: 'bg-green-600' },
+    { name: 'Light Green', class: 'bg-green-300' },
+    { name: 'Orange', class: 'bg-orange-500' },
+    { name: 'Pink', class: 'bg-pink-300' },
+    { name: 'Purple', class: 'bg-purple-600' },
+    { name: 'Red', class: 'bg-red-600' },
+    { name: 'White', class: 'bg-white border-2 border-gray-300' }
+  ];
 
-    if (selectedCategory)
-      result = result.filter((p) => p.category === selectedCategory);
+  const sizes = ['6', '7', '8', '9', '10', '11', '12'];
+  const brands = ['Adidas', 'Nike', 'Puma', 'Reebok', 'New Balance'];
 
-    if (selectedColor) result = result.filter((p) => p.color === selectedColor);
 
-    if (sortOption === "lowToHigh")
-      result.sort((a, b) => a.price - b.price);
-    else if (sortOption === "highToLow")
-      result.sort((a, b) => b.price - a.price);
+  const handleFilterChange = (filterType, value) => {
+    if (filterType === 'priceRange' || filterType === 'rating') {
+      setFilters(prev => ({ ...prev, [filterType]: value }));
+    } else {
+      setFilters(prev => ({
+        ...prev,
+        [filterType]: prev[filterType].includes(value)
+          ? prev[filterType].filter(item => item !== value)
+          : [...prev[filterType], value]
+      }));
+    }
+    setPage(1);
+  };
 
-    setFiltered(result);
-  }, [searchTerm, selectedCategory, selectedColor, sortOption]);
+  const clearAllFilters = () => {
+    setFilters({
+      categories: [],
+      colors: [],
+      priceRange: [],
+      sizes: [],
+      brands: [],
+      rating: 0
+    });
+    setPage(1);
+  };
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      dispatch(setIsLoading(true));
+      const result = await getProducts({
+        categorySlug,
+        subSlug,
+        page,
+        limit,
+        filters
+      });
+      if (result?.data?.success) {
+        dispatch(setProducts(result.data.data?.products));
+        setTotalPages(result.data.data.totalPages);
+      }
+      dispatch(setIsLoading(false));
+    };
+    fetchProducts();
+  }, [categorySlug, subSlug, filters, page]);
+
+  useEffect(() => {
+    const loadsubCategory = async () => {
+      const subData = await getSubCategories(categorySlug);
+
+      setSubCategories(subData.data.data);
+    };
+
+    loadsubCategory();
+  }, [categorySlug]);
+  const handleCategoryChange = (categoryName) => {
+    if (subCategory !== categoryName) {
+      setSubCategory(categoryName); // update state
+
+      // update URL param
+      navigate(`/products/${categorySlug}/${categoryName}`);
+
+      // reset page
+      setPage(1);
+    }
+  };
 
   return (
-    <div className="max-w-7xl mx-auto px-5 py-10">
-      {/* Breadcrumb & Header */}
-      <div className="mb-8">
-        <h2 className="text-3xl font-semibold text-gray-800">Clog Shoes</h2>
-        <p className="text-sm text-gray-500 mt-1">Home / Shop / Clog Shoes</p>
-      </div>
-
-      <div className="flex">
-        {/* Sidebar */}
-        <FilterSidebar
-          selectedCategory={selectedCategory}
-          setSelectedCategory={setSelectedCategory}
-          selectedColor={selectedColor}
-          setSelectedColor={setSelectedColor}
-        />
-
-        {/* Product Grid */}
-        <div className="flex-1 ml-8">
-          {/* Top Controls */}
-          <div className="flex justify-between items-center mb-6">
-            <p className="text-gray-600 text-sm">
-              Showing all {filtered.length} results
-            </p>
-
-            <div className="flex items-center space-x-4">
-              {/* Search */}
-              <input
-                type="text"
-                placeholder="Search..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring focus:ring-gray-200"
-              />
-
-              {/* Sort */}
-              <select
-                className="border border-gray-300 rounded-md px-2 py-1.5 text-sm text-gray-700 focus:outline-none"
-                value={sortOption}
-                onChange={(e) => setSortOption(e.target.value)}
-              >
-                <option value="default">Default sorting</option>
-                <option value="lowToHigh">Price: Low to High</option>
-                <option value="highToLow">Price: High to Low</option>
-              </select>
-
-              {/* View Toggle */}
-              <div className="flex space-x-2">
-                <button
-                  onClick={() => setGridView(true)}
-                  className={`p-2 border ${
-                    gridView ? "bg-gray-900 text-white" : "bg-white text-gray-700"
-                  } rounded`}
-                >
-                  <FaThLarge />
-                </button>
-                <button
-                  onClick={() => setGridView(false)}
-                  className={`p-2 border ${
-                    !gridView ? "bg-gray-900 text-white" : "bg-white text-gray-700"
-                  } rounded`}
-                >
-                  <FaList />
-                </button>
-              </div>
-            </div>
+    <Container >
+      <Breadcrumb />
+      <div className=" px-4 py-8">
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Sidebar - Desktop */}
+          <div className="hidden lg:block w-80 flex-shrink-0 max-h-max sticky">
+            <FilterSidebar
+              filters={filters}
+              handleCategoryChange={handleCategoryChange}
+              subCategory={subCategory}
+              onFilterChange={handleFilterChange}
+              onClearFilters={clearAllFilters}
+              categories={subCategories}
+              brands={brands}
+              colors={colors}
+              sizes={sizes}
+            />
           </div>
 
-          {/* Products */}
-          <div
-            className={`grid ${
-              gridView ? "grid-cols-3 gap-6" : "grid-cols-1 gap-4"
-            }`}
-          >
-            {filtered.map((product) => (
-              <ShopProductCard key={product.id} product={product} grid={gridView} />
-            ))}
+          {/* Main Content */}
+          <div className="flex-1 sticky ">
+            <h1 className="text-[var(--color-black)] font-medium text-2xl capitalize mb-4">
+              {subSlug ? subSlug : categorySlug}
+            </h1>
+            <Header
+              viewMode={viewMode}
+              onViewModeChange={setViewMode}
+              onShowFilters={() => setShowMobileFilters(true)}
+            />
+            {products.length > 0 ? (
+              <div>
+                <ProductGrid products={products} viewMode={viewMode} />
+                <Pagination
+                  currentPage={page}
+                  totalPages={totalPages}
+                  onPageChange={setPage}
+                />
+              </div>
+            ) : (
+              <div className="flex justify-center py-5">
+                <p>Sorry, this category has no product</p>
+              </div>
+            )}
           </div>
         </div>
       </div>
-    </div>
+
+      {/* Mobile Filter Drawer */}
+      <MobileFilterDrawer
+        show={showMobileFilters}
+        onClose={() => setShowMobileFilters(false)}
+        filters={filters}
+        onFilterChange={handleFilterChange}
+        onClearFilters={clearAllFilters}
+        categories={subCategories}
+        brands={brands}
+        colors={colors}
+        sizes={sizes}
+      />
+    </Container>
   );
 };
 

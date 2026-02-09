@@ -46,7 +46,7 @@ instance.interceptors.response.use(
     const origReq = error.config;
 
     // ---------------- Retry 5xx with exponential backoff ----------------
-    if (error?.response?.status >= 500 && _retry_count < 10) {
+    if (error?.response?.status >= 500 && _retry_count < 3) {
       _retry_count++;
       await wait(timeDelay(_retry_count));
       return instance.request(origReq);

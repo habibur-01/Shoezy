@@ -6,6 +6,7 @@ import * as Yup from "yup";
 import { userLogin } from "../../server/auth/auth";
 import { useDispatch, useSelector } from "react-redux";
 import { loggedIn } from "../../redux/features/auth/authSlice";
+import { toast } from "react-toastify";
 
 const loginSchema = Yup.object({
   email: Yup.string()
@@ -28,19 +29,22 @@ const Login = () => {
     try {
       setIsLoading(true);
       const result = await userLogin(values);
-      console.log("🚀 ~ handleLogin ~ result:", result.data);
       if (result?.data.success) {
         dispatch(
           loggedIn({
+            user_id: result?.data?.data?.id,
             email: result?.data?.data?.email,
             username: result?.data?.data?.username,
           })
         );
+        toast.success("Login Successfull")
         navigate(from, { replace: true });
         resetForm();
+      } else {
+        toast.error(result?.data?.message || "Invalid Credentials!");
       }
-    } catch (error) {
-      console.log(error);
+    } catch (error) {  
+      console.log(error.message);
     } finally {
       setIsLoading(false);
     }
@@ -84,7 +88,7 @@ const Login = () => {
                   placeholder="Enter your email"
                   required
                 />
-                {errors.email && touched.email && errors.email}
+                <span className="text-[var(--color-danger)] text-sm"> {errors.email && touched.email && errors.email}</span>
               </div>
 
               <div className="mb-4">
@@ -99,7 +103,9 @@ const Login = () => {
                   placeholder="Enter your password"
                   required
                 />
-                {errors.password && touched.password && errors.password}
+                <span className="text-[var(--color-danger)] text-sm">
+                  {errors.password && touched.password && errors.password}
+                </span>
               </div>
 
               <div className="flex justify-between items-center mb-4">
@@ -116,7 +122,7 @@ const Login = () => {
                 type="submit"
                 className="w-full bg-blue-600 text-white py-2 rounded-lg hover:cursor-pointer hover:bg-blue-700 transition"
               >
-                Login
+                {isLoading ? "Loading.." : "Login"}
               </button>
             </form>
           )}

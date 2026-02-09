@@ -2,13 +2,14 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
 
-const Sidebar = () => {
+const ProfileSidebar = () => {
     const links = [
         { title: "My Profile", path: "/account/profile" },
-        { title: "Address Book", path: "/account/address" },
+        { title: "Billing Address ", path: "/account/address" },
         { title: "My Payment Options", path: "/account/payment" },
     ];
     const orders = [
+        { title: "My Orders", path: "/account/myorders" },
         { title: "My Returns", path: "/account/returns" },
         { title: "My Cancellations", path: "/account/cancellations" },
     ];
@@ -55,4 +56,4 @@ const Sidebar = () => {
     );
 };
 
-export default Sidebar;
+export default ProfileSidebar;

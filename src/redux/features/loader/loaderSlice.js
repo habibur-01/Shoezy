@@ -4,19 +4,20 @@ const loaderSlice = createSlice({
   name: "loader",
   initialState: {
     isLoading: false,
-    message: "", // optional: useful for showing "Logging in..." / "Fetching products..."
+    cartLoader: false
+
   },
   reducers: {
-    startLoading: (state, action) => {
-      state.isLoading = true;
-      state.message = action.payload || "";
+
+    setIsLoading: (state, action) => {
+      state.isLoading = action.payload
     },
-    stopLoading: (state) => {
-      state.isLoading = false;
-      state.message = "";
-    },
+    setCartLoader: (state, action) => {
+      state.cartLoader = action.payload;   // ✅ CORRECT
+    }
+
   },
 });
 
-export const { startLoading, stopLoading } = loaderSlice.actions;
+export const { startLoading, stopLoading, setIsLoading, setCartLoader } = loaderSlice.actions;
 export default loaderSlice.reducer;

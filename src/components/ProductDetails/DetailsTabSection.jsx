@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-const DetailsTabSection = () => {
+const DetailsTabSection = ({description}) => {
   const [activeTab, setActiveTab] = useState("description");
 
   const tabs = [
@@ -33,7 +33,7 @@ const DetailsTabSection = () => {
         {activeTab === "description" && (
           <div>
             <p className="mb-4">
-              Stay stylish and comfortable with the Bata Belt Sandal for Men,
+              {description} Stay stylish and comfortable with the Bata Belt Sandal for Men,
               featuring a lightweight design, secure grip, and durable
               build—perfect for everyday wear.
             </p>

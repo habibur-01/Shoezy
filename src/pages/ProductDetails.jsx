@@ -1,30 +1,93 @@
-import React, { useState } from "react";
-import ProductThumbnails from "../components/Products/ProductThumbnails";
-import ProductZoom from "../components/Products/ProductZoom";
-import ProductDescription from "../components/Products/ProductDescription";
-import SizeSelector from "../components/Products/SizeSelectore";
-import AddToCart from "../components/Products/AddToCart.jsx";
+import React, { useEffect, useState } from "react";
+import ProductThumbnails from "../components/ProductDetails/ProductThumbnails.jsx"
+import ProductZoom from "../components/ProductDetails/ProductZoom.jsx";
+import ProductDescription from "../components/ProductDetails/ProductDescription.jsx";
+import SizeSelector from "../components/ProductDetails/SizeSelectore.jsx";
+import AddToCart from "../components/ProductDetails/AddToCart.jsx";
 import Container from "../components/common/Container/Container.jsx";
-import DetailsTabSection from "../components/Products/DetailsTabSection.jsx";
+import DetailsTabSection from "../components/ProductDetails/DetailsTabSection.jsx";
 import Breadcrumb from "../components/common/Breadcrumb/Breadcrumb.jsx";
+import { useParams } from "react-router-dom";
+import { getProductsDetails } from "../server/product/product.js";
+import { setSingleProduct } from "../redux/features/product/productSlice.js";
+import { useDispatch, useSelector } from "react-redux";
+import ColorSelector from "../components/ProductDetails/ColorSelector.jsx";
+import { addToCart } from "../server/cart/cart.js";
+import { toast } from "react-toastify";
+import { increaseItemCount } from "../redux/features/initial/initialSlice.js";
 
 const ProductDetails = () => {
-  const thumbnails = [
-    "/assets/images/products/imgi_13_16-2-346x346.jpg",
-    "/assets/images/products/imgi_6_02-40-346x346.jpg",
-    "/assets/images/products/imgi_4_10-1-346x346.jpg",
-    "/assets/images/products/imgi_3_01-12-346x346.jpg",
-  ];
+  const params = useParams()
+  const { slug } = params
+  const dispatch = useDispatch()
+  const product = useSelector(state => state.product.singleProduct)
+
+  const thumbnails = React.useMemo(() => {
+    return [
+      product?.images?.cover,
+      ...(product?.images?.gallery || [])
+    ];
+  }, [product]);
 
   const [selectedImage, setSelectedImage] = useState(thumbnails[0]);
   const [selectedSize, setSelectedSize] = useState(null);
-  // const [selectedColor, setSelectedColor] = useState(null);
+  const [selectedColor, setSelectedColor] = useState(null);
   const [quantity, setQuantity] = useState(1);
+  const [isLoading, setIsLoading] = useState(false)
+  console.log("🚀 ~ ProductDetails ~ isLoading:", isLoading)
+  // Update selected image when thumbnails change
+  useEffect(() => {
+    if (thumbnails?.length > 0 && thumbnails[0]) {
+      setSelectedImage(thumbnails[0]);
+    }
+  }, [thumbnails]);
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        const result = await getProductsDetails(slug);
+        if (result?.data?.success) {
+          dispatch(setSingleProduct(result.data.data));
+        }
+      } catch (error) {
+        console.log("fetch products:", error);
+      }
+    };
+
+    if (slug) fetchProduct();
+  }, [slug]);
+
+  const handleAddToCart = async (id) => {
+    try {
+      setIsLoading(true)
+      if (!selectedColor && !selectedColor) return toast.error("Please select a color & size")
+      const cartItem = {
+        product: id,
+        price: product?.discount_price ? product?.discount_price : product?.price,
+        quantity,
+        selectedSize,
+        selectedColor
+      }
+      console.log("🚀 ~ handleAddToCart ~ cartItem:", cartItem)
+
+      const result = await addToCart(cartItem)
+      if (result?.data?.success) {
+        dispatch(increaseItemCount())
+        toast.success('This item is now in your cart.')
+      } else {
+        toast.error(result)
+      }
+
+    } catch (error) {
+      console.log("🚀 ~ handleAddToCart ~ error:", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   return (
     <Container>
       <div>
-        <Breadcrumb/>
+        <Breadcrumb />
       </div>
       <div className="flex  w-full">
         {/* Left: Images */}
@@ -40,36 +103,42 @@ const ProductDetails = () => {
         {/* Right: Details */}
         <div className=" flex-1">
           <ProductDescription
-            title="Nike Air Force 1 '07 Men's Sneakers Sports Shoes"
-            price="$33"
-            stock={211}
-            description="ARICS offers a wide range of shoes, sandals and slippers, 
-            which are a perfect combination of both functionality and style."
+            title={product?.name}
+            price={product?.price}
+            stock={product?.stock_quantity}
+            description={product?.short_description}
           />
-          {/* <ColorSelector
-          colors={["red", "blue", "green"]}
-          selectedColor={selectedColor}
-          onSelect={setSelectedColor}
-          
-        /> */}
-          <div className="mt-4">
-            <h2 className="font-semibold mb-2">Color:</h2>
-            <button className="px-3 py-1 border bg-black border-gray-300 h-8 w-8"></button>
-          </div>
+          <ColorSelector
+            variants={product?.variants}
+            colors={product?.colors}
+            selectedColor={selectedColor}
+            onSelect={(color) => {
+              setSelectedColor(color)
+              setSelectedSize(null)
+            }}
+
+          />
+
           <SizeSelector
-            sizes={[6, 7, 8, 9, 10]}
+            sizeGroup={product?.category?.name.toLowerCase()}       // "men" | "women" | "kids"
+            availableSizes={product?.sizes}    // ["6", "8", "9"]
+            selectedColor={selectedColor}
             selectedSize={selectedSize}
+            variants={product?.variants}
             onSelect={setSelectedSize}
           />
           <AddToCart
+            id={product?._id}
+            isloading={isLoading}
             quantity={quantity}
             onIncrease={() => setQuantity(quantity + 1)}
             onDecrease={() => setQuantity(Math.max(1, quantity - 1))}
+            handleSubmit={handleAddToCart}
           />
         </div>
       </div>
       <div>
-        <DetailsTabSection />
+        <DetailsTabSection description={product?.description} />
       </div>
     </Container>
   );

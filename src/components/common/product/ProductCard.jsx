@@ -5,7 +5,7 @@ const ProductCard = ({ item }) => {
   const oldPrice = true;
   return (
     <div>
-      <Link to={`/products/${item?.id}`}>
+      <Link to={`shop/products/${item?.id}`}>
         <div className="bg-[var(--card-background)] h-96 relative group hover:cursor-pointer">
           <img
             src={item?.images.main}
@@ -13,7 +13,7 @@ const ProductCard = ({ item }) => {
             className="w-full h-full object-cover group-hover:hidden"
           />
           <img
-            src={item?.images?.cover}
+            src={item.images.cover}
             alt="product image"
             className="w-full h-full object-cover hidden opacity-0 group-hover:block group-hover:opacity-100"
           />
