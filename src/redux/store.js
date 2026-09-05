@@ -1,75 +1,79 @@
-import { combineReducers, configureStore } from "@reduxjs/toolkit";
-import authReducer, { loggedIn, loggedOut, setUser } from "./features/auth/authSlice";
+import {
+  combineReducers,
+  configureStore,
+} from "@reduxjs/toolkit";
+
+import authReducer from "./features/auth/authSlice";
 import productReducer from "./features/product/productSlice";
 import cartReducer from "./features/cart/cartSlice";
 import reviewReducer from "./features/review/reviewSlice";
 import initialReducer from "./features/initial/initialSlice";
-import loaderSlice from "./features/loader/loaderSlice";
-import { jwtDecode } from "jwt-decode";
-import storage from "redux-persist/lib/storage";
-import { persistReducer, persistStore } from "redux-persist";
+import loaderReducer from "./features/loader/loaderSlice";
 
-// Combine reducers
+import storage from "redux-persist/lib/storage";
+
+import {
+  persistReducer,
+  persistStore,
+} from "redux-persist";
+
+
+// ==============================
+// Root Reducer
+// ==============================
+
 const rootReducer = combineReducers({
   auth: authReducer,
   initial: initialReducer,
   product: productReducer,
   review: reviewReducer,
   cart: cartReducer,
-  loader: loaderSlice,
+  loader: loaderReducer,
 });
 
-// Persist config
+
+// ==============================
+// Redux Persist
+// ==============================
+
 const persistConfig = {
   key: "root",
   storage,
-  whitelist: [ "cart", "initial"], // slices to persist
+
+  // Only persist these slices
+  whitelist: [
+    "cart",
+    "initial",
+  ],
 };
 
-// Wrap root reducer with persistReducer
-const persistedReducer = persistReducer(persistConfig, rootReducer);
 
-// Configure store
+const persistedReducer = persistReducer(
+  persistConfig,
+  rootReducer
+);
+
+
+// ==============================
+// Store
+// ==============================
+
 const store = configureStore({
   reducer: persistedReducer,
+
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
-      serializableCheck: false, // required for redux-persist
+      serializableCheck: false,
     }),
 });
 
-// Create persistor
-export const persistor = persistStore(store);
 
-function isTokenValid(token) {
-  try {
-    const decoded = jwtDecode(token);
-    return decoded.exp * 1000 > Date.now();
-  } catch {
-    return false;
-  }
-}
+// ==============================
+// Persistor
+// ==============================
 
-const loadDataFromStorage = async () => {
-  try {
-    const token = localStorage.getItem("authToken");
-    const user = localStorage.getItem("user");
+export const persistor =
+  persistStore(store);
 
-    if (token && isTokenValid(token)) {
-      store.dispatch(loggedIn());
-    } else {
-      localStorage.removeItem("authToken");
-      localStorage.removeItem("refreshToken");
-      store.dispatch(loggedOut());
-    }
 
-    if (user) {
-      store.dispatch(setUser(JSON.parse(user)))
-    };
-  } catch (error) {
-    console.error("Error loading data:", error);
-  }
-};
-
-loadDataFromStorage();
 export default store;

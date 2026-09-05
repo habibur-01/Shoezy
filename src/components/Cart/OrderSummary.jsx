@@ -1,96 +1,165 @@
-import { LoaderCircle } from "lucide-react";
 import React, { useState } from "react";
 import { toast } from "react-toastify";
 import LoadingSpin from "../common/loader/LoadingSpin";
-import { getBillingAddress, hasBillingAddress } from "../../server/billing/billing";
+import { hasBillingAddress } from "../../server/billing/billing";
 import { useQuery } from "@tanstack/react-query";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { sethasAdrress } from "../../redux/features/initial/initialSlice";
 import { useNavigate } from "react-router-dom";
 
-const OrderSummary = ({ cartItems, couponError = "", shipping = 0, isApplying, onApplyCoupon }) => {
+import { Tag, X, CheckCircle2 } from "lucide-react";
+import { useAuth } from "../../hooks/useAuth";
+
+const OrderSummary = ({
+  cartItems,
+  couponError = "",
+  shipping = 0,
+  isApplying,
+  isRemovingCoupon,
+  onApplyCoupon,
+  onRemoveCoupon,
+}) => {
   const [coupon, setCoupon] = useState("");
-  const dispatch = useDispatch()
-  const navigate = useNavigate()
+  const { isAuthenticated: hasUser } = useAuth();
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   // Is address available
   const { data: hasAddress } = useQuery({
     queryKey: ["hasAddress"],
     queryFn: async () => {
       const result = await hasBillingAddress();
-      dispatch(sethasAdrress(true))
+      dispatch(sethasAdrress(true));
       return result?.data?.data;
     },
   });
- 
 
- 
+  const appliedCoupon = cartItems?.appliedCoupon;
+  const discountAmount = cartItems?.discount || 0;
+  const totalPrice = cartItems?.totalPrice || 0;
+  const finalPrice = cartItems?.finalPrice !== undefined ? cartItems.finalPrice : totalPrice;
+
+  const handleApply = () => {
+    if (!coupon.trim()) return;
+    onApplyCoupon(coupon.trim());
+    setCoupon("");
+  };
 
   return (
-    <div className="w-full shadow-all">
+    <div className="w-full bg-white rounded-2xl border border-stone-200 shadow-xs overflow-hidden">
+      <div className="px-6 py-5 border-b border-stone-200 bg-stone-50/50">
+        <h3 className="text-base font-bold text-stone-900">Order Summary</h3>
+      </div>
 
-      <div className="w-full bg-[var(--color-background)] px-5 py-6">
-        <div className="pb-4 border-b border-b-[var(--color-border)]">
-          <h3 className="text-[var(--color-black)] font-medium mb-0">Order Summary</h3>
+      <div className="px-6 py-6 space-y-4">
+        {/* Subtotal */}
+        <div className="flex justify-between text-xs font-semibold text-stone-600">
+          <span>Subtotal</span>
+          <span className="text-stone-900 font-bold">${totalPrice}</span>
         </div>
-        <div className="space-y-5 py-6">
-          <div className="flex justify-between text-sm text-[var(--text-gray)] ">
-            <span>Subtotal</span>
-            <span className="text-[var(--color-black)] font-medium">${cartItems?.totalPrice}</span>
-          </div>
 
-          <div className="flex justify-between text-sm text-[var(--text-gray)] ">
-            <span>Shipping</span>
-            <span className="text-green-600 font-medium">
-              {shipping === 0 ? "Free" : `$${shipping}`}
-            </span>
-          </div>
-          {cartItems?.discount > 0 && (
-            <div className="flex justify-between text-sm text-[var(--text-gray)] ">
+        {/* Shipping */}
+        <div className="flex justify-between text-xs font-semibold text-stone-600">
+          <span>Shipping</span>
+          <span className="text-emerald-600 font-bold">
+            {shipping === 0 ? "Free Shipping" : `$${shipping}`}
+          </span>
+        </div>
+
+        {/* Discount */}
+        {discountAmount > 0 && (
+          <div className="flex justify-between text-xs font-semibold text-emerald-700 bg-emerald-50 px-3 py-2 rounded-xl border border-emerald-100">
+            <span className="flex items-center gap-1.5">
+              <Tag className="w-3.5 h-3.5" />
               <span>Discount</span>
-              <span className="text-red-400 font-medium">
-                - ${cartItems?.discount}
-              </span>
-            </div>
-          )}
+            </span>
+            <span className="font-bold">-${discountAmount}</span>
+          </div>
+        )}
 
-          {/* Coupon Field */}
-          <div className="mt-3">
-            <label className="block text-sm text-[var(--text-gray)] mb-1">
-              Add coupon code
-            </label>
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                value={coupon}
-                onChange={(e) => setCoupon(e.target.value)}
-                placeholder="Enter code"
-                className="flex-1 border border-gray-200 rounded-md px-3 h-10 text-sm bg-white"
-              />
+        {/* Coupon Input or Active Coupon Pill */}
+        <div className="pt-2">
+          {appliedCoupon ? (
+            <div className="flex items-center justify-between p-3 bg-stone-900 text-white rounded-xl shadow-xs">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                <div>
+                  <span className="text-xs font-bold uppercase tracking-wider block">
+                    {appliedCoupon}
+                  </span>
+                  <span className="text-[10px] text-stone-300">
+                    Coupon Active (-${discountAmount})
+                  </span>
+                </div>
+              </div>
+
               <button
-                onClick={()=> onApplyCoupon(coupon)}
-                disabled={!coupon}
-                className="bg-green-600 text-white text-sm px-3 h-10 w-16 rounded-md hover:bg-green-700 transition disabled:bg-gray-400 hover:cursor-pointer"
+                onClick={onRemoveCoupon}
+                disabled={isRemovingCoupon}
+                className="p-1 text-stone-400 hover:text-white hover:bg-stone-800 rounded-lg transition cursor-pointer"
+                title="Remove coupon"
               >
-                {isApplying ? <LoadingSpin /> : "Apply"}
+                {isRemovingCoupon ? <LoadingSpin /> : <X className="w-4 h-4" />}
               </button>
             </div>
-            {couponError && <p className="text-red-600 text-xs mt-1 pl-1">{couponError}</p>}
-          </div>
+          ) : (
+            <div className="space-y-1.5">
+              <label className="block text-xs font-semibold text-stone-600">
+                Have a coupon code?
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={coupon}
+                  onChange={(e) => setCoupon(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleApply()}
+                  placeholder="Enter coupon code"
+                  className="flex-1 border border-stone-200 rounded-xl px-3.5 h-10 text-xs font-medium bg-white focus:outline-none focus:border-stone-900 transition"
+                />
+                <button
+                  onClick={handleApply}
+                  disabled={!coupon.trim() || isApplying}
+                  className="bg-stone-900 hover:bg-stone-800 text-white font-bold text-xs px-4 h-10 rounded-xl transition cursor-pointer disabled:opacity-50 flex items-center justify-center min-w-[70px]"
+                >
+                  {isApplying ? <LoadingSpin /> : "Apply"}
+                </button>
+              </div>
+              {couponError && (
+                <p className="text-red-600 text-[11px] font-medium pt-1">
+                  {couponError}
+                </p>
+              )}
+            </div>
+          )}
         </div>
 
-        <div className="border-t border-gray-200 my-3"></div>
+        <div className="border-t border-stone-200 my-2"></div>
 
-        <div className="flex justify-between text-base text-[var(--color-black)] font-medium py-2">
-          <span>Total</span>
-          <span>${cartItems?.finalPrice + shipping}</span>
+        {/* Total Amount */}
+        <div className="flex justify-between items-center py-1">
+          <span className="text-sm font-bold text-stone-900">Total</span>
+          <span className="text-lg font-extrabold text-stone-900">
+            ${finalPrice + shipping}
+          </span>
         </div>
-
-
       </div>
-      <button disabled={cartItems.items?.length === 0}  className={`w-full bg-green-600  disabled:bg-gray-300 text-white text-md py-3  hover:bg-green-700 transition hover:cursor-pointer`} onClick={()=>{navigate("/mycart/checkout")}}>
-        CHECKOUT
-      </button>
+
+      <div className="p-4 bg-stone-50 border-t border-stone-200">
+        <button
+          disabled={!cartItems?.items || cartItems?.items?.length === 0}
+          className="w-full bg-stone-900 hover:bg-stone-800 disabled:bg-stone-300 text-white font-bold text-xs py-3.5 rounded-xl transition-all cursor-pointer disabled:cursor-not-allowed shadow-md uppercase tracking-wider"
+          onClick={() => {
+            if (!hasUser) {
+              toast.warning("Please login first to proceed with checkout!");
+              navigate("/login");
+              return;
+            }
+            navigate("/mycart/checkout");
+          }}
+        >
+          PROCEED TO CHECKOUT
+        </button>
+      </div>
     </div>
   );
 };

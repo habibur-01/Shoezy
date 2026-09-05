@@ -10,6 +10,7 @@ const ProfileSidebar = () => {
     ];
     const orders = [
         { title: "My Orders", path: "/account/myorders" },
+        { title: "Track Order", path: "/account/track-order" },
         { title: "My Returns", path: "/account/returns" },
         { title: "My Cancellations", path: "/account/cancellations" },
     ];

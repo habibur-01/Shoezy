@@ -7,7 +7,7 @@ import { Provider } from "react-redux";
 import store, { persistor } from "./redux/store.js";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import AppInitializer from "./initial/AppInitializer.jsx";
+import { AuthProvider } from "./context/AuthContext.jsx";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { PersistGate } from "redux-persist/integration/react";
 const queryClient = new QueryClient();
@@ -17,7 +17,7 @@ createRoot(document.getElementById("root")).render(
     <BrowserRouter>
       <Provider store={store}>
         <PersistGate loading={null} persistor={persistor}>
-          <AppInitializer>
+          <AuthProvider>
             <QueryClientProvider client={queryClient}>
               {/* Global Toast */}
               <ToastContainer
@@ -27,7 +27,7 @@ createRoot(document.getElementById("root")).render(
               />
               <App />
             </QueryClientProvider>
-          </AppInitializer>
+          </AuthProvider>
         </PersistGate>
       </Provider>
     </BrowserRouter>

@@ -33,10 +33,14 @@ export const getProducts = async ({
 
     if (sizes.length > 0) params.append("sizes", sizes.join(","));
     if (rating > 0) params.append("rating", rating);
+    if (filters.sortBy) params.append("sortBy", filters.sortBy);
+    if (filters.search) params.append("search", filters.search);
 
-    const endpoint = subSlug
-      ? `${GET_PRODUCTS_ENDPOINT}/${categorySlug}/${subSlug}?${params.toString()}`
-      : `${GET_PRODUCTS_ENDPOINT}/${categorySlug}?${params.toString()}`;
+    const endpoint = (categorySlug && categorySlug !== "undefined")
+      ? (subSlug && subSlug !== "undefined"
+          ? `${GET_PRODUCTS_ENDPOINT}/${categorySlug}/${subSlug}?${params.toString()}`
+          : `${GET_PRODUCTS_ENDPOINT}/${categorySlug}?${params.toString()}`)
+      : `${GET_PRODUCTS_ENDPOINT}?${params.toString()}`;
 
     const result = await api.get(endpoint)
 

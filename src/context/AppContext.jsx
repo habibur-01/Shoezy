@@ -1,7 +1,8 @@
-import { createContext } from "react";
+import { createContext, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { GET_CATEGORIES_ENDPOINT, GET_NAVBAR_ENDPOINT, GET_SUBCATEGORIES_ENDPOINT } from "../endpoint";
 import { setCategories, setCategory, setSubCategory } from "../redux/features/initial/initialSlice";
+import api from "../api/index"; 
 
 export const AppContext = createContext(null)
 const AppProvider = ({ children }) => {

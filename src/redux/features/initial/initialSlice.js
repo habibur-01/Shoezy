@@ -6,6 +6,7 @@ const initialSlice = createSlice({
     categories: [],
     category: [],
     countCartItem: 0,
+    countWishlistItem: 0,
     subCategory: [],
     hasAddress: false
   },
@@ -23,6 +24,15 @@ const initialSlice = createSlice({
     setCountCartItem: (state, action) => {
       state.countCartItem = action.payload;
     },
+    setCountWishlistItem: (state, action) => {
+      state.countWishlistItem = action.payload;
+    },
+    increaseWishlistCount: (state) => {
+      state.countWishlistItem = Math.max(state.countWishlistItem + 1, 0);
+    },
+    decreaseWishlistCount: (state) => {
+      state.countWishlistItem = Math.max(state.countWishlistItem - 1, 0);
+    },
     increaseItemCount: (state) => {
       state.countCartItem = Math.max(state.countCartItem + 1, 0);
     },
@@ -38,5 +48,5 @@ const initialSlice = createSlice({
   },
 });
 
-export const { setCategories, setCategory, setSubCategory, setCountCartItem, removeOneFromCount, resetCartCount, increaseItemCount, sethasAdrress } = initialSlice.actions;
+export const { setCategories, setCategory, setSubCategory, setCountCartItem, setCountWishlistItem, increaseWishlistCount, decreaseWishlistCount, removeOneFromCount, resetCartCount, increaseItemCount, sethasAdrress } = initialSlice.actions;
 export default initialSlice.reducer;

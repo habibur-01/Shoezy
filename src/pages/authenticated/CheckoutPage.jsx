@@ -1,8 +1,8 @@
-import { CircleDollarSign, CreditCard } from "lucide-react";
-import React, { useCallback, useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { User, ShieldCheck } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useDispatch, useSelector } from "react-redux";
-import { getBillingAddress } from "../../server/billing/billing";
+import { getUserAddresses, getBillingAddress } from "../../server/billing/billing";
 import Breadcrumb from "../../components/common/Breadcrumb/Breadcrumb";
 import Container from "../../components/common/Container/Container";
 import CheckoutSummary from "../../components/checkout/CheckoutSummary";
@@ -16,179 +16,227 @@ import OrderConfirmation from "../../components/checkout/OrderConfirmation";
 import { useNavigate } from "react-router-dom";
 
 const CheckoutPage = () => {
-  const dispatch = useDispatch()
-  const navigate = useNavigate()
-  const [isLoading, setIsLoading] = useState(false)
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [isLoading, setIsLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("");
   const [trxId, setTrxId] = useState("");
-  const [addressType, setAddressType] = useState('home')
-  const cartItems = useSelector(state => { return state.cart.carts })
-  const hasAddress = useSelector(state => { return state.initial.hasAddress })
-  const user = useSelector(state => { return state.auth.user; })
-  const [errorMsg, setErrorMsg] = useState({ addressErr: null, paymentErr: null })
+  const [selectedAddress, setSelectedAddress] = useState(null);
+  const cartItems = useSelector((state) => state.cart.carts);
+  const user = useSelector((state) => state.auth.user);
+  const [errorMsg, setErrorMsg] = useState({ addressErr: null, paymentErr: null });
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [orderData, setOrderData] = useState(null);
-  const wasReloaded =
-    window.performance.getEntriesByType("navigation")[0].type === "reload"
 
-  // Fetch Address
-  const { data: address } = useQuery({
-    queryKey: ["address"],
+  // Fetch All User Saved Addresses
+  const { data: addresses, isLoading: isLoadingAddresses } = useQuery({
+    queryKey: ["addresses"],
     queryFn: async () => {
-      const result = await getBillingAddress(user?.user_id);
-
-      return result?.data?.data;
+      const result = await getUserAddresses();
+      return result?.data?.data || [];
     },
   });
+  console.log("🚀 ~ CheckoutPage ~ addresses:", addresses)
+ 
 
+ 
 
-  const products = cartItems?.items
-  const deliveryFee = 34;
-  const serviceFee = 14;
-  const vat = 35;
-  const shipping = address?.billingAddresses?.shippingAddress
+  // Set default active selected address
+  useEffect(() => {
+    if (addresses?.length > 0 && !selectedAddress) {
+      const defaultAddr = addresses.find((a) => a.isDefault) || addresses[0];
+      setSelectedAddress(defaultAddr);
+    }
+  }, [addresses, selectedAddress]);
+
+  const activeAddr = selectedAddress;
+  console.log("🚀 ~ CheckoutPage ~ activeAddr:", activeAddr)
+  const hasAddress = Boolean(activeAddr && (activeAddr.addressLine || activeAddr.shippingAddress?.address));
+
+  const products = cartItems?.items || [];
+  const deliveryFee = 0;
+  const serviceFee = 0;
+  const vat = 0;
 
   const handlePlaceOrder = async () => {
     try {
-      setIsLoading(true)
-      if (!hasAddress) {
-        return (setErrorMsg({ addressErr: "Add delivery address", paymentErr: null }))
+      setIsLoading(true);
+      setErrorMsg({ addressErr: null, paymentErr: null });
+
+      if (!hasAddress || !activeAddr) {
+        setErrorMsg({ addressErr: "Please add or select a delivery address before placing an order", paymentErr: null });
+        toast.warning("Delivery address required");
+        return;
       }
+
       if (!paymentMethod) {
-
-        return (setErrorMsg({ addressErr: null, paymentErr: "Select a payment method" }));
-      }
-      if (cartItems?.items?.length === 0) {
-
-        return toast.error("Please add some product");
+        setErrorMsg({ addressErr: null, paymentErr: "Please select a payment method" });
+        toast.warning("Select a payment method");
+        return;
       }
 
-      if (
-        ["bkash", "nagad", "rocket"].includes(paymentMethod) &&
-        trxId.trim() === ""
-      ) {
-        setErrorMsg({ addressErr: null, paymentErr:`Please enter your ${paymentMethod} transaction ID`});
+      if (!products || products.length === 0) {
+        toast.error("Your cart is empty");
+        navigate("/products");
+        return;
+      }
+
+      if (["bkash", "nagad", "rocket", "bank"].includes(paymentMethod) && !trxId.trim()) {
+        setErrorMsg({
+          addressErr: null,
+          paymentErr: `Please enter your valid ${paymentMethod.toUpperCase()} transaction ID or reference number`,
+        });
         return;
       }
 
       const orderPayload = {
-        appliedCoupon: cartItems?.appliedCoupon,
+        appliedCoupon: cartItems?.appliedCoupon || null,
         paymentMethod,
-        transactionId: trxId,
-        items: cartItems?.items,
-        finalPrice: cartItems.finalPrice,
+        transactionId: trxId.trim(),
+        items: products,
+        finalPrice: cartItems?.finalPrice !== undefined ? cartItems.finalPrice : cartItems?.totalPrice,
       };
-      
 
-      const order = await createOrder(orderPayload)
-      if (order.data?.success) {
-        setShowConfirmation(true)
-        localStorage.setItem("checkoutConfirm", "true")
-        setOrderData(cartItems)
-        dispatch(setCarts({}))
+      const res = await createOrder(orderPayload);
+
+      if (res?.data?.success) {
+        toast.success("Order placed successfully!");
+        setShowConfirmation(true);
+        setOrderData(res?.data?.data?.order || cartItems);
+        dispatch(setCarts({ items: [], totalPrice: 0, discount: 0, finalPrice: 0 }));
+        queryClient.invalidateQueries(["cart"]);
+      } else {
+        toast.error(res?.data?.message || "Failed to place order");
       }
     } catch (error) {
-      toast.error(error?.response?.data?.message)
-
+      console.error("handlePlaceOrder error:", error);
+      toast.error(error?.response?.data?.message || "Order creation failed. Please check your items and address.");
     } finally {
-      setIsLoading(false)
-    }
-
-  };
-  
-  const closeModal = async() => {
-    const isModal = localStorage.getItem("checkoutConfirm")
-    console.log("🚀 ~ closeModal ~ isModal:", isModal)
-    if (isModal === "true" && cartItems.items?.length === 0) {
-      navigate("/");
-      localStorage.removeItem("checkoutConfirm");
+      setIsLoading(false);
     }
   };
-
-  useEffect(() => {
-    closeModal()
-  }, [cartItems])
 
   return (
     <Container>
-
-      <div className="min-h-screen ">
+      <div className="min-h-screen pb-16">
         <Breadcrumb />
-        <div className="max-w-7xl mx-auto p-4 md:p-6">
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">
-            Review and place your order
-          </h1>
+        <div className="max-w-7xl mx-auto px-4 py-6">
+          <div className="border-b border-stone-200 pb-4 mb-6">
+            <h1 className="text-2xl md:text-3xl font-bold text-stone-900">
+              Review & Complete Your Order
+            </h1>
+            <p className="text-xs text-stone-500 mt-1">
+              Select your delivery address, check order details, and choose your payment method.
+            </p>
+          </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* LEFT SECTION */}
-            <div className="lg:col-span-2">
-              {/* ADDRESS CARD */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* LEFT COLUMN — Address & Payment */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* ADDRESS SELECTION CARD */}
               <div>
-                <DeliveryAddress {...{ address: shipping?.address, city: shipping?.city, state: shipping?.state, country: shipping?.country, zipCode: shipping?.zip, hasAddress, addressType }} />
-
-                <div className="mt-2 ml-1">
-                  {errorMsg.addressErr && <p className="text-[var(--color-danger)]">{errorMsg?.addressErr}</p>}
-                </div>
+                <DeliveryAddress
+                  addresses={addresses}
+                  selectedAddress={activeAddr}
+                  onSelectAddress={setSelectedAddress}
+                  isLoadingAddresses={isLoadingAddresses}
+                />
+                {errorMsg.addressErr && (
+                  <p className="text-xs font-semibold text-red-600 mt-2 pl-1">
+                    {errorMsg.addressErr}
+                  </p>
+                )}
               </div>
 
-              {/* PERSONAL INFO */}
-              <div className="bg-white rounded-lg shadow-sm p-6 my-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                  Personal Information
-                </h2>
+              {/* PERSONAL INFO CARD */}
+              <div className="bg-white rounded-2xl border border-stone-200 p-6 shadow-xs">
+                <div className="flex items-center gap-2 mb-4">
+                  <User className="w-5 h-5 text-stone-800" />
+                  <h2 className="text-base font-bold text-stone-900">
+                    Contact Information
+                  </h2>
+                </div>
 
-                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-1">
-                  <p className="text-sm text-gray-800">{address?.billingAddresses?.firstName}  {address?.billingAddresses?.lastName}</p>
-                  <p className="text-sm text-gray-800">
-                    {address?.user?.email}
+                <div className="bg-stone-50 rounded-xl p-4 border border-stone-200/80 space-y-1.5">
+                  <p className="text-xs font-bold text-stone-900">
+                    {activeAddr?.firstName
+                      ? `${activeAddr.firstName} ${activeAddr.lastName}`
+                      : user?.name || "Customer Name"}
                   </p>
-                  <p className="text-sm text-gray-800">{address?.billingAddresses?.phone}</p>
+                  <p className="text-xs text-stone-600 font-medium">
+                    {user?.email || "customer@example.com"}
+                  </p>
+                  <p className="text-xs text-stone-600 font-medium">
+                    Phone: {activeAddr?.phone || user?.phone || "Not provided"}
+                  </p>
                 </div>
               </div>
 
               {/* PAYMENT METHOD */}
               <div>
-                <PaymentMethod {...{ paymentMethod, trxId, setPaymentMethod, setTrxId, setErrorMsg }} />
-                <div className="mt-2 ml-1">
-                  {errorMsg?.paymentErr && <p className="text-[var(--color-danger)]">{errorMsg?.paymentErr}</p>}
-                </div>
+                <PaymentMethod
+                  paymentMethod={paymentMethod}
+                  trxId={trxId}
+                  setPaymentMethod={setPaymentMethod}
+                  setTrxId={setTrxId}
+                  setErrorMsg={setErrorMsg}
+                />
+                {errorMsg?.paymentErr && (
+                  <p className="text-xs font-semibold text-red-600 mt-2 pl-1">
+                    {errorMsg.paymentErr}
+                  </p>
+                )}
               </div>
-
 
               {/* PLACE ORDER BUTTON */}
               <button
                 onClick={handlePlaceOrder}
-                className="w-full bg-green-600 hover:bg-green-700 text-white my-4 py-3 rounded-lg font-semibold text-lg shadow hover:cursor-pointer"
+                disabled={isLoading || !products || products.length === 0}
+                className="w-full bg-stone-900 hover:bg-stone-800 disabled:bg-stone-300 text-white font-bold text-sm py-4 rounded-xl shadow-md transition cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                {isLoading ? <LoadingSpin /> : " Place Order"}
+                {isLoading ? (
+                  <LoadingSpin />
+                ) : (
+                  <>
+                    <ShieldCheck className="w-5 h-5 text-emerald-400" />
+                    <span>CONFIRM & PLACE ORDER</span>
+                  </>
+                )}
               </button>
             </div>
 
-            {/* RIGHT SECTION (Order Summary) */}
+            {/* RIGHT COLUMN — Order Summary */}
             <div className="lg:col-span-1">
-              <CheckoutSummary {...{
-                products,
-                totalPrice: cartItems?.totalPrice,
-                finalPrice: cartItems?.finalPrice,
-                deliveryFee,
-                vat,
-                serviceFee
-              }} />
-
+              <CheckoutSummary
+                products={products}
+                totalPrice={cartItems?.totalPrice || 0}
+                finalPrice={cartItems?.finalPrice !== undefined ? cartItems.finalPrice : cartItems?.totalPrice || 0}
+                discount={cartItems?.discount || 0}
+                appliedCoupon={cartItems?.appliedCoupon || ""}
+                deliveryFee={deliveryFee}
+                vat={vat}
+                serviceFee={serviceFee}
+                isCalculating={isLoadingAddresses || isLoading}
+              />
             </div>
           </div>
 
+          {/* Confirmation Modal */}
           {showConfirmation && (
             <OrderConfirmation
               showConfirmation={showConfirmation}
               orderData={orderData}
-              onClose={() => { setShowConfirmation(false); setOrderData(null) }}
+              onClose={() => {
+                setShowConfirmation(false);
+                setOrderData(null);
+                navigate("/");
+              }}
             />
           )}
-
         </div>
       </div>
-    </Container >
+    </Container>
   );
 };
 
