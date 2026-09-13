@@ -80,7 +80,7 @@ export const AuthProvider = ({ children }) => {
       LOGIN_ENDPOINT,
       credentials
     );
-  
+
     if (response?.data?.success) {
       const userData = response.data.data.user;
 
@@ -97,9 +97,6 @@ export const AuthProvider = ({ children }) => {
       SIGNUP_ENDPOINT,
       data
     );
-
-    // Registration successful,
-    // but DON'T authenticate the user here.
 
     return response;
   };

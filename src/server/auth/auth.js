@@ -1,6 +1,7 @@
-import api from "../../api/index";
+import api from "../../api";
 import {
   LOGIN_ENDPOINT,
+  ADMIN_LOGIN_ENDPOINT,
   SIGNUP_ENDPOINT,
   LOGOUT_ENDPOINT,
   GET_ME_ENDPOINT,
@@ -13,13 +14,24 @@ import {
   UPDATE_AVATAR_ENDPOINT,
 } from "../../endpoint";
 
-// Login
+// Login (Customer / User)
 export const userLogin = async (data) => {
   try {
     const result = await api.post(LOGIN_ENDPOINT, data);
     return result;
   } catch (error) {
     console.error("🚀 ~ login ~ error:", error);
+    throw error;
+  }
+};
+
+// Dedicated Admin Login
+export const adminLogin = async (data) => {
+  try {
+    const result = await api.post(ADMIN_LOGIN_ENDPOINT, data);
+    return result;
+  } catch (error) {
+    console.error("🚀 ~ adminLogin ~ error:", error);
     throw error;
   }
 };

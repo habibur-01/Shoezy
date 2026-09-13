@@ -2,6 +2,7 @@
 export const SIGNUP_ENDPOINT = "/api/user/signup";
 export const REGISTER_ENDPOINT = "/api/user/register";
 export const LOGIN_ENDPOINT = "/api/user/login";
+export const ADMIN_LOGIN_ENDPOINT = "/api/admin/login";
 export const LOGOUT_ENDPOINT = "/api/user/logout";
 export const REFRESH_TOKEN_ENDPOINT = "/api/user/refresh-token";
 export const GET_ME_ENDPOINT = "/api/user/me";
@@ -45,3 +46,25 @@ export const CHECK_CAN_REVIEW_ENDPOINT = "/api/user/review/can-review"
 // Order
 export const CREATE_ORDER_ENDPOINT ="api/user/order/create"
 export const GET_ORDER_ENDPOINT ="api/user/order"
+
+// Admin Products
+export const ADMIN_PRODUCTS_ENDPOINT = "/api/admin/product";
+export const ADMIN_PRODUCT_ADD_ENDPOINT = "/api/admin/product/add";
+export const ADMIN_PRODUCT_UPDATE_ENDPOINT = "/api/admin/product";
+export const ADMIN_PRODUCT_DELETE_ENDPOINT = "/api/admin/product";
+export const ADMIN_PRODUCT_STOCK_ENDPOINT = "/api/admin/product";
+
+// Admin Dashboard
+export const ADMIN_DASHBOARD_ENDPOINT = "/api/admin/dashboard";
+
+// Admin Categories & Taxonomy Hierarchy
+export const ADMIN_CATEGORY_ENDPOINT = "/api/admin/category";
+export const ADMIN_CATEGORY_TREE_ENDPOINT = "/api/admin/category/tree";
+export const ADMIN_CATEGORY_ADD_ENDPOINT = "/api/admin/category/add";
+export const ADMIN_SUBCATEGORY_ENDPOINT = "/api/admin/sub-category";
+export const ADMIN_SUBCATEGORY_ADD_ENDPOINT = "/api/admin/sub-category/add";
+export const ADMIN_CHILDCATEGORY_ENDPOINT = "/api/admin/child-category";
+export const ADMIN_CHILDCATEGORY_ADD_ENDPOINT = "/api/admin/child-category/add";
+
+// Admin Users & RBAC
+export const ADMIN_USERS_ENDPOINT = "/api/admin/users";

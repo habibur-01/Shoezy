@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import FilterSidebar from "../components/Products/FilterSidebar";
 import Header from "../components/Products/Header";
 import MobileFilterDrawer from "../components/Products/MobileFilterDrawer";
@@ -6,202 +6,335 @@ import Pagination from "../components/Products/Pagination";
 import ProductGrid from "../components/Products/ProductGrid";
 import Container from "../components/common/Container/Container";
 import Breadcrumb from "../components/common/Breadcrumb/Breadcrumb";
-import { getProducts, getSubCategories } from "../server/product/product";
+import { getProducts } from "../server/product/product";
 import { useDispatch, useSelector } from "react-redux";
 import { setProducts } from "../redux/features/product/productSlice";
-import { useNavigate, useParams, Link, useSearchParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { setIsLoading } from "../redux/features/loader/loaderSlice";
-import { MapPin, ArrowRight, X } from "lucide-react";
+import { MapPin, ArrowRight, X, Filter, RotateCcw } from "lucide-react";
+import { useProductFilters } from "../hooks/useProductFilters";
+
+const BRANDS = [
+  "Nike",
+  "Adidas",
+  "Puma",
+  "New Balance",
+  "Reebok",
+  "Zara",
+  "H&M",
+  "Levi's",
+  "Tommy Hilfiger",
+  "Calvin Klein",
+  "Gucci",
+  "Ralph Lauren",
+  "Uniqlo",
+  "Under Armour",
+];
+
+const COLORS = [
+  { name: "Black", class: "bg-black" },
+  { name: "White", class: "bg-white border-2 border-stone-300" },
+  { name: "Red", class: "bg-red-600" },
+  { name: "Blue", class: "bg-blue-600" },
+  { name: "Grey", class: "bg-stone-500" },
+  { name: "Green", class: "bg-green-600" },
+  { name: "Navy", class: "bg-blue-900" },
+  { name: "Beige", class: "bg-amber-100 border border-stone-300" },
+  { name: "Yellow", class: "bg-yellow-400" },
+  { name: "Brown", class: "bg-amber-800" },
+];
+
+const SIZES = ["38", "39", "40", "41", "42", "43", "44", "45", "XS", "S", "M", "L", "XL", "XXL"];
 
 const ShopPage = () => {
-  const navigate = useNavigate();
-  const [viewMode, setViewMode] = useState('grid');
+  const [viewMode, setViewMode] = useState("grid");
   const [showMobileFilters, setShowMobileFilters] = useState(false);
-  const dispatch = useDispatch();
-  const products = useSelector(state => state.product.products);
-  const params = useParams();
-  const { categorySlug, subSlug } = params;
-  const [subCategories, setSubCategories] = useState([]);
-  const [subCategory, setSubCategory] = useState(subSlug);
-  const [page, setPage] = useState(1);
-  const [limit] = useState(12);
-  const [searchParams, setSearchParams] = useSearchParams();
-  const urlSearchQuery = searchParams.get("search") || "";
   const [totalProductsCount, setTotalProductsCount] = useState(0);
-
-  const [filters, setFilters] = useState({
-    colors: [],
-    priceRange: [],
-    sizes: [],
-    brands: [],
-    rating: 0,
-    sortBy: "default",
-    search: urlSearchQuery,
-  });
-
-  useEffect(() => {
-    setFilters((prev) => ({ ...prev, search: urlSearchQuery }));
-    setPage(1);
-  }, [urlSearchQuery]);
-
-  const handleSortChange = (newSort) => {
-    setFilters((prev) => ({ ...prev, sortBy: newSort }));
-    setPage(1);
-  };
-
-  useEffect(() => {
-    setSubCategory(subSlug);
-  }, [subSlug]);
-
-  const colors = [
-    { name: 'Black', class: 'bg-black' },
-    { name: 'Blue', class: 'bg-blue-600' },
-    { name: 'Brown', class: 'bg-amber-700' },
-    { name: 'Gray', class: 'bg-gray-500' },
-    { name: 'Green', class: 'bg-green-600' },
-    { name: 'Light Green', class: 'bg-green-300' },
-    { name: 'Orange', class: 'bg-orange-500' },
-    { name: 'Pink', class: 'bg-pink-300' },
-    { name: 'Purple', class: 'bg-purple-600' },
-    { name: 'Red', class: 'bg-red-600' },
-    { name: 'White', class: 'bg-white border-2 border-gray-300' }
-  ];
-
-  const sizes = ['6', '7', '8', '9', '10', '11', '12'];
-  const brands = ['Adidas', 'Nike', 'Puma', 'Reebok', 'New Balance'];
-
-  const handleFilterChange = (filterType, value) => {
-    if (filterType === 'priceRange' || filterType === 'rating') {
-      setFilters(prev => ({ ...prev, [filterType]: value }));
-    } else {
-      setFilters(prev => ({
-        ...prev,
-        [filterType]: prev[filterType].includes(value)
-          ? prev[filterType].filter(item => item !== value)
-          : [...prev[filterType], value]
-      }));
-    }
-    setPage(1);
-  };
-
-  const clearAllFilters = () => {
-    setFilters({
-      categories: [],
-      colors: [],
-      priceRange: [],
-      sizes: [],
-      brands: [],
-      rating: 0
-    });
-    setPage(1);
-  };
-
   const [totalPages, setTotalPages] = useState(1);
 
+  const dispatch = useDispatch();
+  const products = useSelector((state) => state.product.products);
+  const categoriesTree = useSelector((state) => state.initial.categories || []);
+
+  const params = useParams();
+  const { categorySlug: pathCat, subSlug: pathSub } = params;
+
+  // Use URL-driven product filtering hook
+  const {
+    filters,
+    searchParams,
+    toggleCategory,
+    toggleSubCategory,
+    toggleChildCategory,
+    toggleBrand,
+    toggleColor,
+    toggleSize,
+    setPriceRange,
+    setRating,
+    setSort,
+    setPage,
+    removeFilterItem,
+    clearAllFilters,
+  } = useProductFilters();
+
+  // If path params exist (e.g. /products/:categorySlug/:subSlug), merge into filters for backward compatibility
+  const effectiveCategorySlug = pathCat || (filters.categories.length === 1 ? filters.categories[0] : null);
+  const effectiveSubSlug = pathSub || (filters.subCategories.length === 1 ? filters.subCategories[0] : null);
+  const effectiveCategories = filters.categories.length > 0 ? filters.categories : (pathCat ? [pathCat] : []);
+
+  // Fetch products whenever searchParams or pathParams change
   useEffect(() => {
     const fetchProducts = async () => {
       dispatch(setIsLoading(true));
-      const result = await getProducts({
-        categorySlug,
-        subSlug,
-        page,
-        limit,
-        filters
-      });
-      if (result?.data?.success) {
-        dispatch(setProducts(result.data.data?.products));
-        setTotalPages(result.data.data?.totalPages || 1);
-        setTotalProductsCount(result.data.data?.total || 0);
-      }
-      dispatch(setIsLoading(false));
-    };
-    fetchProducts();
-  }, [categorySlug, subSlug, filters, page]);
+      try {
+        const result = await getProducts({
+          categorySlug: pathCat,
+          subSlug: pathSub,
+          page: filters.page,
+          limit: filters.limit,
+          filters: {
+            ...filters,
+            // If path params are present and not already in filters array, include them
+            categories: filters.categories.length > 0 ? filters.categories : (pathCat ? [pathCat] : []),
+            subCategories: filters.subCategories.length > 0 ? filters.subCategories : (pathSub ? [pathSub] : []),
+          },
+        });
 
-  useEffect(() => {
-    const loadsubCategory = async () => {
-      if (categorySlug) {
-        const subData = await getSubCategories(categorySlug);
-        if (subData?.data?.data) {
-          setSubCategories(subData.data.data);
+        if (result?.data?.success) {
+          dispatch(setProducts(result.data.data?.products || []));
+          setTotalPages(result.data.data?.totalPages || 1);
+          setTotalProductsCount(result.data.data?.total || 0);
+        } else {
+          dispatch(setProducts([]));
+          setTotalPages(1);
+          setTotalProductsCount(0);
         }
+      } catch (err) {
+        console.error("ShopPage fetchProducts error:", err);
+      } finally {
+        dispatch(setIsLoading(false));
       }
     };
 
-    loadsubCategory();
-  }, [categorySlug]);
+    fetchProducts();
+  }, [searchParams, pathCat, pathSub, filters, dispatch]);
 
-  const handleCategoryChange = (categoryName) => {
-    if (subCategory !== categoryName) {
-      setSubCategory(categoryName);
-      navigate(`/products/${categorySlug}/${categoryName}`);
-      setPage(1);
+  // Compute active filters list for display as chips
+  const activeChips = [];
+
+  filters.categories.forEach((cat) => {
+    activeChips.push({
+      id: `cat-${cat}`,
+      type: "category",
+      label: `Category: ${cat}`,
+      onRemove: () => removeFilterItem("category", cat),
+    });
+  });
+
+  filters.subCategories.forEach((sub) => {
+    activeChips.push({
+      id: `sub-${sub}`,
+      type: "sub-category",
+      label: `Subcategory: ${sub}`,
+      onRemove: () => removeFilterItem("sub-category", sub),
+    });
+  });
+
+  filters.childCategories.forEach((child) => {
+    activeChips.push({
+      id: `child-${child}`,
+      type: "child-category",
+      label: `Group: ${child}`,
+      onRemove: () => removeFilterItem("child-category", child),
+    });
+  });
+
+  filters.brands.forEach((brand) => {
+    activeChips.push({
+      id: `brand-${brand}`,
+      type: "brand",
+      label: `Brand: ${brand}`,
+      onRemove: () => removeFilterItem("brand", brand),
+    });
+  });
+
+  filters.colors.forEach((color) => {
+    activeChips.push({
+      id: `color-${color}`,
+      type: "color",
+      label: `Color: ${color}`,
+      onRemove: () => removeFilterItem("color", color),
+    });
+  });
+
+  filters.sizes.forEach((size) => {
+    activeChips.push({
+      id: `size-${size}`,
+      type: "size",
+      label: `Size: ${size}`,
+      onRemove: () => removeFilterItem("size", size),
+    });
+  });
+
+  if (filters.minPrice !== null || filters.maxPrice !== null) {
+    let priceLabel = "Price: ";
+    if (filters.minPrice !== null && filters.maxPrice !== null) {
+      priceLabel += `$${filters.minPrice} - $${filters.maxPrice}`;
+    } else if (filters.minPrice !== null) {
+      priceLabel += `Min $${filters.minPrice}`;
+    } else {
+      priceLabel += `Max $${filters.maxPrice}`;
     }
-  };
+
+    activeChips.push({
+      id: "price-range",
+      type: "price",
+      label: priceLabel,
+      onRemove: () => {
+        removeFilterItem("minPrice");
+        removeFilterItem("maxPrice");
+      },
+    });
+  }
+
+  if (filters.rating) {
+    activeChips.push({
+      id: `rating-${filters.rating}`,
+      type: "rating",
+      label: `Rating: ${filters.rating}★ & Up`,
+      onRemove: () => removeFilterItem("rating"),
+    });
+  }
+
+  if (filters.search) {
+    activeChips.push({
+      id: `search-${filters.search}`,
+      type: "search",
+      label: `Search: "${filters.search}"`,
+      onRemove: () => removeFilterItem("search"),
+    });
+  }
+
+  // Page title
+  const pageTitle = effectiveSubSlug
+    ? effectiveSubSlug.replace(/-/g, " ")
+    : effectiveCategorySlug
+      ? effectiveCategorySlug.replace(/-/g, " ")
+      : "All Products";
 
   return (
     <Container>
       <Breadcrumb />
-      <div className="px-4 py-8">
+      <div className="px-4 py-6">
         <div className="flex flex-col lg:flex-row gap-8 items-start relative">
-          {/* Sidebar - Desktop (Sticky Top with Pinned Clear All Filters Button) */}
+          {/* Sidebar - Desktop */}
           <div className="hidden lg:block w-80 flex-shrink-0 sticky top-24 self-start">
             <FilterSidebar
               filters={filters}
-              handleCategoryChange={handleCategoryChange}
-              subCategory={subCategory}
-              onFilterChange={handleFilterChange}
+              categories={categoriesTree}
+              selectedCategories={effectiveCategories}
+              brands={BRANDS}
+              colors={COLORS}
+              sizes={SIZES}
+              onToggleCategory={toggleCategory}
+              onToggleSubCategory={toggleSubCategory}
+              onToggleChildCategory={toggleChildCategory}
+              onToggleBrand={toggleBrand}
+              onToggleColor={toggleColor}
+              onToggleSize={toggleSize}
+              onPriceRangeChange={setPriceRange}
+              onRatingChange={setRating}
               onClearFilters={clearAllFilters}
-              categories={subCategories}
-              brands={brands}
-              colors={colors}
-              sizes={sizes}
             />
           </div>
 
-          {/* Main Product Content (Scrolls naturally alongside sticky filter) */}
+          {/* Main Product Content */}
           <div className="flex-1 min-w-0">
-            <h1 className="text-[var(--color-black)] font-medium text-2xl capitalize mb-4">
-              {subSlug ? subSlug : categorySlug || "All Products"}
-            </h1>
-
-            {urlSearchQuery && (
-              <div className="flex items-center justify-between bg-stone-100 border border-stone-200 px-4 py-3 rounded-xl mb-4 text-xs font-semibold text-stone-800">
-                <span>Search results for: <strong className="text-stone-900 font-extrabold text-sm">"{urlSearchQuery}"</strong></span>
-                <button
-                  onClick={() => {
-                    searchParams.delete("search");
-                    setSearchParams(searchParams);
-                  }}
-                  className="flex items-center gap-1 text-stone-500 hover:text-red-600 font-bold transition-colors cursor-pointer"
-                >
-                  <X className="w-4 h-4" />
-                  <span>Clear Search</span>
-                </button>
+            {/* Header Title & Active Filter Summary */}
+            <div className="mb-4">
+              <div className="flex items-center justify-between">
+                <h1 className="text-2xl font-bold text-stone-900 capitalize tracking-tight">
+                  {pageTitle}
+                </h1>
+                <span className="text-xs font-semibold text-stone-500">
+                  {totalProductsCount} {totalProductsCount === 1 ? "Product" : "Products"} Found
+                </span>
               </div>
-            )}
 
+              {/* Active Filter Chips Bar */}
+              {activeChips.length > 0 && (
+                <div className="flex flex-wrap items-center gap-2 mt-3 pt-3 border-t border-stone-200/80">
+                  <span className="text-xs font-bold text-stone-500 flex items-center gap-1">
+                    <Filter className="w-3 h-3" />
+                    Active Filters:
+                  </span>
+
+                  {activeChips.map((chip) => (
+                    <span
+                      key={chip.id}
+                      className="inline-flex items-center gap-1.5 px-3 py-1 bg-stone-100 hover:bg-stone-200 border border-stone-200 text-stone-800 rounded-full text-xs font-semibold transition"
+                    >
+                      <span className="capitalize">{chip.label}</span>
+                      <button
+                        type="button"
+                        onClick={chip.onRemove}
+                        className="p-0.5 text-stone-400 hover:text-red-600 rounded-full cursor-pointer transition-colors"
+                        title="Remove this filter"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  ))}
+
+                  <button
+                    type="button"
+                    onClick={clearAllFilters}
+                    className="inline-flex items-center gap-1 text-xs font-bold text-red-600 hover:text-red-700 ml-1 cursor-pointer transition"
+                  >
+                    <RotateCcw className="w-3 h-3" />
+                    Clear All
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* View Mode & Sort Controls Header */}
             <Header
               viewMode={viewMode}
               onViewModeChange={setViewMode}
               onShowFilters={() => setShowMobileFilters(true)}
-              sortBy={filters.sortBy}
-              onSortChange={handleSortChange}
+              sortBy={filters.sort}
+              onSortChange={setSort}
               totalResults={totalProductsCount}
               currentCount={products?.length || 0}
             />
+
+            {/* Product Grid / Empty State */}
             {products && products.length > 0 ? (
-              <div className="space-y-8">
+              <div className="space-y-8 mt-6">
                 <ProductGrid products={products} viewMode={viewMode} />
                 <Pagination
-                  currentPage={page}
+                  currentPage={filters.page}
                   totalPages={totalPages}
                   onPageChange={setPage}
                 />
               </div>
             ) : (
-              <div className="flex justify-center py-8 bg-stone-50 rounded-xl border border-stone-200">
-                <p className="text-stone-600 text-sm font-medium">No products found in this selection.</p>
+              <div className="flex flex-col items-center justify-center py-16 px-4 bg-stone-50 rounded-2xl border border-stone-200 text-center mt-6">
+                <div className="w-12 h-12 rounded-full bg-stone-200/80 flex items-center justify-center text-stone-500 mb-3">
+                  <Filter className="w-5 h-5" />
+                </div>
+                <h3 className="text-base font-bold text-stone-900 mb-1">No matching products found</h3>
+                <p className="text-xs text-stone-500 max-w-sm mb-4">
+                  We couldn't find any products matching your selected combination of filters. Try removing some filters or resetting all filters.
+                </p>
+                <button
+                  type="button"
+                  onClick={clearAllFilters}
+                  className="px-4 py-2 bg-stone-900 hover:bg-stone-800 text-white text-xs font-semibold rounded-xl transition cursor-pointer shadow-xs"
+                >
+                  Reset All Filters
+                </button>
               </div>
             )}
           </div>
@@ -213,18 +346,24 @@ const ShopPage = () => {
         show={showMobileFilters}
         onClose={() => setShowMobileFilters(false)}
         filters={filters}
-        onFilterChange={handleFilterChange}
+        categories={categoriesTree}
+        selectedCategories={effectiveCategories}
+        brands={BRANDS}
+        colors={COLORS}
+        sizes={SIZES}
+        onToggleCategory={toggleCategory}
+        onToggleSubCategory={toggleSubCategory}
+        onToggleChildCategory={toggleChildCategory}
+        onToggleBrand={toggleBrand}
+        onToggleColor={toggleColor}
+        onToggleSize={toggleSize}
+        onPriceRangeChange={setPriceRange}
+        onRatingChange={setRating}
         onClearFilters={clearAllFilters}
-        categories={subCategories}
-        brands={brands}
-        colors={colors}
-        sizes={sizes}
-        subCategory={subCategory}
-        handleCategoryChange={handleCategoryChange}
         totalResults={totalProductsCount}
       />
 
-      {/* Convenient Store Outlets Callout Banner */}
+      {/* Outlets Banner */}
       <div className="my-10 p-6 sm:p-8 rounded-2xl bg-stone-900 text-stone-100 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-lg border border-stone-800">
         <div className="space-y-1.5 text-center sm:text-left">
           <span className="px-3 py-0.5 rounded-full bg-red-500/20 text-red-400 text-[11px] font-semibold uppercase tracking-wider inline-flex items-center gap-1">

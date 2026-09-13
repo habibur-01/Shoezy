@@ -1,15 +1,26 @@
-
+import React, { useState } from "react";
 import { ChevronDown } from "lucide-react";
-import React from "react";
 
-const FilterSection = ({ title, children }) => (
-  <div className="bg-white rounded-lg border border-gray-200 p-4">
-    <div className="flex items-center justify-between mb-4">
-      <h3 className="font-semibold text-gray-900">{title}</h3>
-      <ChevronDown className="w-5 h-5 text-gray-500" />
+const FilterSection = ({ title, children, defaultOpen = true }) => {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
+
+  return (
+    <div className="bg-white rounded-xl border border-stone-200 overflow-hidden shadow-2xs transition-all">
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex items-center justify-between p-3.5 text-left hover:bg-stone-50 transition cursor-pointer select-none"
+      >
+        <h3 className="font-bold text-stone-900 text-xs uppercase tracking-wider">{title}</h3>
+        <ChevronDown
+          className={`w-4 h-4 text-stone-500 transition-transform duration-200 ${
+            isOpen ? "rotate-180" : ""
+          }`}
+        />
+      </button>
+      {isOpen && <div className="p-3.5 pt-0">{children}</div>}
     </div>
-    {children}
-  </div>
-);
+  );
+};
 
 export default FilterSection;

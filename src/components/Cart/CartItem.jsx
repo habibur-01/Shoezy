@@ -1,7 +1,7 @@
 import React from "react";
 import { FaMinus, FaPlus, FaTimes } from "react-icons/fa";
 
-const CartItem = ({ item, onIncrement, onDecrement, onRemove }) => {
+const CartItem = ({ item, onIncrement, onDecrement, onRemove, isUpdating = false }) => {
   const prod = item?.product || {};
   const image =
     prod?.image ||
@@ -51,7 +51,7 @@ const CartItem = ({ item, onIncrement, onDecrement, onRemove }) => {
         <div className="inline-flex items-center space-x-2">
           <button
             onClick={onDecrement}
-            disabled={item?.quantity === 1}
+            disabled={item?.quantity === 1 || isUpdating}
             className="border border-stone-300 rounded-lg p-1 w-6 h-6 flex items-center justify-center hover:bg-stone-100 disabled:opacity-40 transition cursor-pointer"
           >
             <FaMinus className="text-[10px] text-stone-700" />
@@ -61,7 +61,7 @@ const CartItem = ({ item, onIncrement, onDecrement, onRemove }) => {
 
           <button
             onClick={onIncrement}
-            disabled={stock <= item.quantity}
+            disabled={stock <= item.quantity || isUpdating}
             className="border border-stone-300 rounded-lg p-1 w-6 h-6 flex items-center justify-center hover:bg-stone-100 disabled:opacity-40 transition cursor-pointer"
           >
             <FaPlus className="text-[10px] text-stone-700" />
@@ -78,7 +78,8 @@ const CartItem = ({ item, onIncrement, onDecrement, onRemove }) => {
       <td className="text-center py-4 px-3">
         <button
           onClick={onRemove}
-          className="text-stone-400 hover:text-red-600 p-1.5 rounded-lg hover:bg-red-50 transition cursor-pointer"
+          disabled={isUpdating}
+          className="text-stone-400 hover:text-red-600 disabled:opacity-40 p-1.5 rounded-lg hover:bg-red-50 transition cursor-pointer"
           title="Remove item"
         >
           <FaTimes className="text-xs" />

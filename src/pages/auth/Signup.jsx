@@ -48,9 +48,14 @@ const Signup = () => {
       const result = await signup(data);
 
       if (result?.data?.success) {
-        toast.success("Account created! We've sent a verification link to your email inbox.");
+        toast.success("Account created! We've sent a verification link to your email inbox.", { autoClose: 6000 });
         resetForm();
-        navigate("/login");
+        navigate("/login", {
+          state: {
+            registeredEmail: data.email,
+            justRegistered: true,
+          },
+        });
       } else {
         const msg = result?.data?.message || "Failed to create account";
         setServerError(msg);

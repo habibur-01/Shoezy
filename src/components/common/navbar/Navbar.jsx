@@ -1,4 +1,4 @@
-import { Link, NavLink, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
 import { FaSearch, FaRegUser } from "react-icons/fa";
 import { MdFavoriteBorder, MdOutlineShoppingCart } from "react-icons/md";
 import { useDispatch, useSelector } from "react-redux";
@@ -6,21 +6,83 @@ import { CiLogout, CiUser } from "react-icons/ci";
 import { useEffect, useState, useRef } from "react";
 import { totalCartItem } from "../../../server/cart/cart";
 import { getWishlistCount } from "../../../server/wishlist/wishlist";
-import { setCountCartItem, setCountWishlistItem } from "../../../redux/features/initial/initialSlice";
+import { setCountCartItem, setCountWishlistItem, setCategories } from "../../../redux/features/initial/initialSlice";
 import { getProducts } from "../../../server/product/product";
 import { toast } from "react-toastify";
 import { Loader2, X, User } from "lucide-react";
 import MobileNavbar from "./MobileNavbar";
+import MegaMenu from "./MegaMenu";
 import { useAuth } from "../../../hooks/useAuth";
+import api from "../../../api";
+import { GET_NAVBAR_ENDPOINT } from "../../../endpoint";
 
 const Navbar = () => {
   const { logout } = useAuth();
   const { user, isAuthenticated:hasUser } = useSelector((state) => state.auth);
-  const categories = useSelector((state) => state.initial.categories);
+  const categoriesFromState = useSelector((state) => state.initial.categories);
+  const categoryFallback = useSelector((state) => state.initial.category);
+  const categories =
+    categoriesFromState && categoriesFromState.length > 0
+      ? categoriesFromState
+      : categoryFallback && categoryFallback.length > 0
+      ? categoryFallback
+      : [];
   const cartItemNum = useSelector((state) => state.initial.countCartItem);
   const wishlistItemNum = useSelector((state) => state.initial.countWishlistItem);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Mega Menu Dropdown States
+  const [activeCategory, setActiveCategory] = useState(null);
+  const [isMegaMenuOpen, setIsMegaMenuOpen] = useState(false);
+  const closeTimeoutRef = useRef(null);
+
+  const handleCategoryMouseEnter = (cat) => {
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current);
+      closeTimeoutRef.current = null;
+    }
+    setActiveCategory(cat);
+    setIsMegaMenuOpen(true);
+  };
+
+  const handleCategoryMouseLeave = () => {
+    closeTimeoutRef.current = setTimeout(() => {
+      setIsMegaMenuOpen(false);
+      setActiveCategory(null);
+    }, 200);
+  };
+
+  const handleMegaMenuMouseEnter = () => {
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current);
+      closeTimeoutRef.current = null;
+    }
+    setIsMegaMenuOpen(true);
+  };
+
+  const handleMegaMenuMouseLeave = () => {
+    closeTimeoutRef.current = setTimeout(() => {
+      setIsMegaMenuOpen(false);
+      setActiveCategory(null);
+    }, 150);
+  };
+
+  const handleCloseMegaMenu = () => {
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current);
+      closeTimeoutRef.current = null;
+    }
+    setIsMegaMenuOpen(false);
+    setActiveCategory(null);
+  };
+
+  const handleCategoryClick = (e, cat) => {
+    e.preventDefault();
+    handleCloseMegaMenu();
+    navigate(`/products?category=${cat.slug}`);
+  };
 
   // Search States
   const [searchQuery, setSearchQuery] = useState("");
@@ -71,6 +133,22 @@ const Navbar = () => {
   useEffect(() => {
     loadCartItem();
   }, [hasUser]);
+
+  // Fetch categories if not yet loaded in Redux
+  useEffect(() => {
+    if (!categories || categories.length === 0) {
+      api
+        .get(GET_NAVBAR_ENDPOINT)
+        .then((res) => {
+          if (res?.data?.success && Array.isArray(res?.data?.data)) {
+            dispatch(setCategories(res.data.data));
+          }
+        })
+        .catch((err) => {
+          console.error("Navbar category fetch error:", err);
+        });
+    }
+  }, [categories, dispatch]);
 
   // Debounced live search preview effect
   useEffect(() => {
@@ -123,66 +201,58 @@ const Navbar = () => {
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-[var(--color-background)] border-b border-stone-200/60 shadow-xs">
-      <div className="hidden lg:flex w-full h-28 bg-[var(--color-background)] py-3 px-8 lg:px-20 justify-between items-center relative z-40">
+    <header className="sticky top-0 z-40 bg-[var(--color-background)] border-b border-stone-200/60 shadow-xs relative">
+      <div className="hidden lg:flex w-full h-24 bg-[var(--color-background)] py-3 px-8 lg:px-20 justify-between items-center relative z-40">
       {/* Left section */}
       <div>
-        <ul className="flex items-center gap-x-8 py-3 font-medium">
+        <ul className="flex items-center gap-x-8 font-medium h-full">
           <li>
             <NavLink
               to="/"
-              className="text-base text-[var(--color-text)] hover:text-[var(--color-red)] transition-colors duration-300"
+              className="text-xs uppercase font-bold tracking-wider text-stone-700 hover:text-stone-950 transition-colors py-1"
             >
               Home
             </NavLink>
           </li>
-          <li className="relative group">
-            <NavLink
-              to="/products"
-              className="text-base text-[var(--color-text)] hover:text-[var(--color-red)] transition-colors duration-300"
-            >
-              Shop
-            </NavLink>
-          </li>
 
           {categories.length > 0 &&
-            categories.map((navItem) => (
-              <li key={navItem?._id} className="relative group">
-                <NavLink
-                  to={
-                    navItem?.subcategories?.length > 0
-                      ? "#"
-                      : `/products/${navItem.slug}`
-                  }
-                  className="text-base text-[var(--color-text)] hover:text-[var(--color-red)] transition-colors duration-300 capitalize"
-                >
-                  {navItem?.name}
-                </NavLink>
+            categories.map((navItem) => {
+              const isActiveInMenu = activeCategory?._id === navItem?._id && isMegaMenuOpen;
+              const isCurrentUrlCategory =
+                (location.pathname === "/products" &&
+                  new URLSearchParams(location.search).get("category") === navItem.slug) ||
+                location.pathname === `/products/${navItem.slug}` ||
+                location.pathname.startsWith(`/products/${navItem.slug}/`);
+              const isHighlighted = isActiveInMenu || isCurrentUrlCategory;
 
-                {/* Only show dropdown if there are subcategories */}
-                {navItem?.subcategories?.length > 0 && (
-                  <div className="absolute left-0 mt-2 min-w-[150px] bg-[var(--color-background)] z-50 rounded-md shadow-md opacity-0 invisible translate-y-1/3 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 transition-all duration-300 ease-in-out">
-                    <ul className="flex flex-col">
-                      {navItem.subcategories.map((subItem) => (
-                        <li key={subItem?._id} className="px-4 py-3">
-                          <NavLink
-                            to={`/products/${navItem.slug}/${subItem.slug}`}
-                            className="text-sm flex items-center font-light text-[var(--color-text)] hover:text-[var(--color-red)] transition-colors duration-300"
-                          >
-                            {subItem?.name}
-                          </NavLink>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </li>
-            ))}
+              return (
+                <li
+                  key={navItem?._id}
+                  className="relative flex items-center py-4"
+                  onMouseEnter={() => handleCategoryMouseEnter(navItem)}
+                  onMouseLeave={handleCategoryMouseLeave}
+                >
+                  <button
+                    onClick={(e) => handleCategoryClick(e, navItem)}
+                    className={`relative py-1 text-xs uppercase font-bold tracking-wider transition-colors cursor-pointer outline-none ${
+                      isHighlighted
+                        ? "text-orange-600 font-black"
+                        : "text-stone-700 hover:text-stone-950"
+                    }`}
+                  >
+                    <span>{navItem.name}</span>
+                    {isHighlighted && (
+                      <span className="absolute -bottom-1.5 left-0 right-0 h-[2.5px] bg-orange-600 rounded-full transition-all duration-200"></span>
+                    )}
+                  </button>
+                </li>
+              );
+            })}
 
           <li>
             <NavLink
               to="/outlets"
-              className="text-base text-[var(--color-text)] hover:text-[var(--color-red)] transition-colors duration-300"
+              className="text-xs uppercase font-bold tracking-wider text-stone-700 hover:text-stone-950 transition-colors py-1"
             >
               Our Outlets
             </NavLink>
@@ -382,6 +452,15 @@ const Navbar = () => {
         </NavLink>
       </div>
     </div>
+
+      {/* Desktop Mega Menu Dropdown */}
+      <MegaMenu
+        category={activeCategory}
+        isOpen={isMegaMenuOpen}
+        onClose={handleCloseMegaMenu}
+        onMouseEnter={handleMegaMenuMouseEnter}
+        onMouseLeave={handleMegaMenuMouseLeave}
+      />
 
       {/* Separate Small Device Navbar Component */}
       <MobileNavbar

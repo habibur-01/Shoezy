@@ -1,5 +1,5 @@
 import { Route, Routes, Navigate } from "react-router-dom";
-import MainLayout from "../Layout/MainLayout";
+import MainLayout from "../layouts/MainLayout";
 import Home from "../pages/Home";
 import ProductDetails from "../pages/ProductDetails";
 import Login from "../pages/auth/Login";
@@ -8,33 +8,75 @@ import ForgotPassword from "../pages/auth/ForgotPassword";
 import ResetPassword from "../pages/auth/ResetPassword";
 import VerifyEmail from "../pages/auth/VerifyEmail";
 import ErrorPage from "../pages/ErrorPage";
-import CartPage from "../pages/authenticated/CartPage";
+import CartPage from "../pages/customer/CartPage";
 import PrivateRoute from "../components/PrivateRoute/PrivatRoute";
-import WishlistPage from "../pages/authenticated/WishListPage";
+import WishlistPage from "../pages/customer/WishListPage";
 import ShopPage from "../pages/ShopPage";
 import OutletsPage from "../pages/OutletsPage";
 import ProfileDetails from "../components/Profile/ProfileDteails";
-import ProfilePageLayout from "../Layout/ProfilePageLayout";
+import ProfilePageLayout from "../layouts/ProfilePageLayout";
 import BillingAddress from "../components/Profile/BillingAddress";
-import CheckoutPage from "../pages/authenticated/CheckoutPage";
+import CheckoutPage from "../pages/customer/CheckoutPage";
 import MyOrders from "../components/Profile/MyOrders";
 import MyReturns from "../components/Profile/MyReturns";
 import MyCancellations from "../components/Profile/MyCancellations";
 import UserPaymentOptions from "../components/Profile/UserPaymentOptions";
 import OrderTrackingPage from "../components/Profile/OrderTrackingPage";
-import PaymentGatewayManager from "../pages/authenticated/PaymentGatewayManager";
-import AuthLayout from "../Layout/AuthLayout";
+import AuthLayout from "../layouts/AuthLayout";
+
+// Admin Infrastructure
+import AdminLayout from "../layouts/AdminLayout";
+import AdminRoute from "../components/PrivateRoute/AdminRoute";
+import AdminLogin from "../pages/admin/AdminLogin";
+import AdminDashboard from "../pages/admin/AdminDashboard";
+import ProductsPage from "../pages/admin/ProductsView";
+import AddProductPage from "../pages/admin/AddProductView";
+import CategoriesPage from "../pages/admin/CategoriesView";
+import OrdersView from "../pages/admin/OrdersView";
+import CouponsView from "../pages/admin/CouponsView";
+import AnalyticsView from "../pages/admin/AnalyticsView";
+import RolesPermissionsView from "../pages/admin/RolesPermissionsView";
+import AuditLogsView from "../pages/admin/AuditLogsView";
+import PaymentGatewayManager from "../pages/admin/PaymentGatewayManager";
+import UsersView from "../pages/admin/UsersView";
 
 const Router = () => {
   return (
     <Routes>
-      {/* Auth routes */}
+      {/* Customer Authentication routes */}
       <Route element={<AuthLayout />}>
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
+      </Route>
+
+      {/* Dedicated Executive Admin Login Route */}
+      <Route path="/admin/login" element={<AdminLogin />} />
+
+      {/* Protected Admin Operations Hub Routes */}
+      <Route
+        path="/admin"
+        element={
+          <AdminRoute>
+            <AdminLayout />
+          </AdminRoute>
+        }
+      >
+        <Route index element={<Navigate to="/admin/dashboard" replace />} />
+        <Route path="dashboard" element={<AdminDashboard />} />
+        <Route path="products" element={<ProductsPage />} />
+        <Route path="add_product" element={<AddProductPage />} />
+        <Route path="add-product" element={<AddProductPage />} />
+        <Route path="categories" element={<CategoriesPage />} />
+        <Route path="orders" element={<OrdersView />} />
+        <Route path="coupons" element={<CouponsView />} />
+        <Route path="analytics" element={<AnalyticsView />} />
+        <Route path="roles" element={<RolesPermissionsView />} />
+        <Route path="users" element={<UsersView />} />
+        <Route path="audit" element={<AuditLogsView />} />
+        <Route path="payment-gateways" element={<PaymentGatewayManager />} />
       </Route>
 
       {/* Public Store routes & main store shell */}
@@ -46,12 +88,11 @@ const Router = () => {
         <Route path="/outlets" element={<OutletsPage />} />
         <Route path="/account/mycart" element={<CartPage />} />
 
-        {/* Private Customer & Admin Routes inside main layout */}
+        {/* Private Customer Routes inside main layout */}
         <Route element={<PrivateRoute />}>
           <Route path="/order" element={<CheckoutPage />} />
           <Route path="/account/wishlist" element={<WishlistPage />} />
           <Route path="/mycart/checkout" element={<CheckoutPage />} />
-          <Route path="/admin/payment-gateways" element={<PaymentGatewayManager />} />
         </Route>
 
         {/* Catch-all 404 route inside main store layout */}

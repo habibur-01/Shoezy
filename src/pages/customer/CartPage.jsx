@@ -24,7 +24,7 @@ const CartPage = () => {
    console.log("🚀 ~ CartPage ~ isAuthenticated:", isAuthenticated)
 
   // Fetch Cart (Always calculates totals on the backend)
-  const { data: cartItems, isLoading } = useQuery({
+  const { data: cartItems, isLoading, isFetching } = useQuery({
     queryKey: ["cart"],
     retry: false,
     queryFn: async () => {
@@ -88,26 +88,15 @@ const CartPage = () => {
     }
   }, [cartItems, dispatch]);
 
-  const isOverlayBusy = isUpdatingCart || isApplying || isRemovingCoupon;
+  const isCalculating = isUpdatingCart || (isFetching && !isLoading) || isApplying || isRemovingCoupon;
+  const isInitialLoading = isLoading && !cartItems;
 
   return (
     <Container>
       <Breadcrumb />
-      {isLoading && <LoadingSpinner />}
-      {!isLoading && (
+      {isInitialLoading && <LoadingSpinner />}
+      {!isInitialLoading && (
         <div className="max-w-6xl mx-auto py-10 flex flex-col lg:flex-row gap-8 relative">
-          {/* Backdrop Overlay Loading Spinner for all cart actions */}
-          {isOverlayBusy && (
-            <div className="absolute inset-0 bg-white/70 backdrop-blur-xs z-30 flex flex-col items-center justify-center gap-3 rounded-2xl animate-in fade-in duration-150">
-              <div className="p-4 bg-stone-900 text-white rounded-2xl shadow-xl flex items-center gap-3">
-                <Loader2 className="w-6 h-6 animate-spin text-white" />
-                <span className="text-xs font-bold uppercase tracking-wider">
-                  Updating Cart & Calculating Totals...
-                </span>
-              </div>
-            </div>
-          )}
-
           {/* Cart Table Container */}
           <div className="w-full lg:w-2/3 ">
             {!cartItems?.items || cartItems?.items?.length === 0 ? (
@@ -146,6 +135,7 @@ const CartPage = () => {
                       <CartItem
                         key={item._id}
                         item={item}
+                        isUpdating={isCalculating}
                         onIncrement={() =>
                           incrementCartItem(
                             queryClient,
@@ -189,6 +179,7 @@ const CartPage = () => {
               couponError={couponError}
               isApplying={isApplying}
               isRemovingCoupon={isRemovingCoupon}
+              isCalculating={isCalculating}
             />
           </div>
         </div>

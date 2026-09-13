@@ -6,14 +6,20 @@ const MobileFilterDrawer = ({
   show,
   onClose,
   filters,
-  onFilterChange,
-  onClearFilters,
   categories,
+  selectedCategories,
   brands,
   colors,
   sizes,
-  subCategory,
-  handleCategoryChange,
+  onToggleCategory,
+  onToggleSubCategory,
+  onToggleChildCategory,
+  onToggleBrand,
+  onToggleColor,
+  onToggleSize,
+  onPriceRangeChange,
+  onRatingChange,
+  onClearFilters,
   totalResults = 0,
 }) => {
   if (!show) return null;
@@ -46,14 +52,20 @@ const MobileFilterDrawer = ({
         <div className="flex-1 overflow-y-auto p-4 scrollbar-thin">
           <FilterSidebar
             filters={filters}
-            onFilterChange={onFilterChange}
-            onClearFilters={onClearFilters}
             categories={categories}
+            selectedCategories={selectedCategories}
             brands={brands}
             colors={colors}
             sizes={sizes}
-            subCategory={subCategory}
-            handleCategoryChange={handleCategoryChange}
+            onToggleCategory={onToggleCategory}
+            onToggleSubCategory={onToggleSubCategory}
+            onToggleChildCategory={onToggleChildCategory}
+            onToggleBrand={onToggleBrand}
+            onToggleColor={onToggleColor}
+            onToggleSize={onToggleSize}
+            onPriceRangeChange={onPriceRangeChange}
+            onRatingChange={onRatingChange}
+            onClearFilters={onClearFilters}
           />
         </div>
 

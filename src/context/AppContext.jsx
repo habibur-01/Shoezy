@@ -11,23 +11,28 @@ const AppProvider = ({ children }) => {
     useEffect(() => {
         const loadInitialData = async () => {
             try {
-                const [categoryRes, subCategoriesRes, categoriesRes] = await Promise.all([
+                const [categoryRes, subCategoriesRes, categoriesRes] = await Promise.allSettled([
                     api.get(`${GET_CATEGORIES_ENDPOINT}`),
                     api.get(`${GET_SUBCATEGORIES_ENDPOINT}`),
                     api.get(`${GET_NAVBAR_ENDPOINT}`),
-
                 ]);
-                dispatch(setCategory(categoryRes.data?.data));
-                dispatch(setSubCategory(subCategoriesRes.data?.data));
-                dispatch(setCategories(categoriesRes.data?.data));
 
+                if (categoryRes.status === "fulfilled" && categoryRes.value?.data?.data) {
+                    dispatch(setCategory(categoryRes.value.data.data));
+                }
+                if (subCategoriesRes.status === "fulfilled" && subCategoriesRes.value?.data?.data) {
+                    dispatch(setSubCategory(subCategoriesRes.value.data.data));
+                }
+                if (categoriesRes.status === "fulfilled" && categoriesRes.value?.data?.data) {
+                    dispatch(setCategories(categoriesRes.value.data.data));
+                }
             } catch (error) {
                 console.error("Initial API load failed:", error);
             }
         };
 
         loadInitialData();
-    }, []);
+    }, [dispatch]);
 
     const data = {
 

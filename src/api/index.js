@@ -18,7 +18,20 @@ const instance = axios.create({
   },
 
   // Important for HttpOnly cookies
-  withCredentials: true,
+});
+
+// Attach Authorization header if admin token or user token exists in localStorage
+instance.interceptors.request.use((config) => {
+  const adminToken = typeof window !== 'undefined' ? localStorage.getItem('shoezy_admin_token') : null;
+  const userToken = typeof window !== 'undefined' ? (localStorage.getItem('token') || localStorage.getItem('access_token')) : null;
+  const token = adminToken || userToken;
+
+  if (token && !config.headers.Authorization) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+}, (error) => {
+  return Promise.reject(error);
 });
 
 // =====================================================

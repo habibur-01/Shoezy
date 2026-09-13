@@ -29,6 +29,16 @@ const Login = () => {
   const location = useLocation();
   const from = location.state?.from?.pathname || "/";
   const [currentMode, setCurrentMode] = useState('login');
+  const [registeredEmail, setRegisteredEmail] = useState(location.state?.registeredEmail || "");
+
+  React.useEffect(() => {
+    if (location.state?.registeredEmail) {
+      setRegisteredEmail(location.state.registeredEmail);
+    }
+    if (location.state?.justRegistered) {
+      setCurrentMode('login');
+    }
+  }, [location.state]);
 
   const { data: cartData } = useQuery({
     queryKey: ["cart"],
@@ -40,15 +50,13 @@ const Login = () => {
 
   const cartCount = cartData?.items?.length || 0;
 
-
-
-
   const handleLogin = async (values, resetForm) => {
     try {
       setIsLoading(true);
       const loginPayload = {
         email: values.email.trim().toLowerCase(),
         password: values.password,
+        rememberMe: Boolean(values.rememberMe),
       };
       const result = await login(loginPayload);
 
@@ -67,7 +75,7 @@ const Login = () => {
         "Login failed. Please check your credentials.";
 
       toast.error(message);
-
+      throw error;
     } finally {
       setIsLoading(false);
     }
@@ -87,8 +95,13 @@ const Login = () => {
       const result = await signup(signupPayload);
 
       if (result?.data?.success) {
-        toast.success("Account created successfully!");
-        navigate(from, { replace: true });
+        const email = signupPayload.email;
+        setRegisteredEmail(email);
+        setCurrentMode('login');
+        toast.success(
+          "Account created! We've sent a verification link to your email. Please verify before signing in.",
+          { autoClose: 6000 }
+        );
       } else {
         const message = result?.data?.message || "Failed to create account";
         toast.error(message);
@@ -173,7 +186,7 @@ const Login = () => {
                       onSuccess={handleLogin}
                       onSwitchToSignup={() => setCurrentMode('signup')}
                       onSwitchToForgot={() => setCurrentMode('forgot')}
-
+                      initialEmail={registeredEmail}
                     />
                   </motion.div>
                 )}

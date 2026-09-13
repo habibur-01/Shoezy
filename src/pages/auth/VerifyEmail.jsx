@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { verifyEmail, resendVerification } from "../../server/auth/auth";
 import { toast } from "react-toastify";
@@ -7,19 +7,47 @@ import { MdMarkEmailRead, MdErrorOutline, MdCheckCircleOutline } from "react-ico
 const VerifyEmail = () => {
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token");
+  const urlStatus = searchParams.get("status");
+  const urlError = searchParams.get("error");
   const navigate = useNavigate();
 
-  const [status, setStatus] = useState(token ? "verifying" : "idle"); // idle | verifying | success | error
-  const [message, setMessage] = useState("");
+  const [status, setStatus] = useState(
+    urlStatus === "success"
+      ? "success"
+      : urlError
+      ? "error"
+      : token
+      ? "verifying"
+      : "idle"
+  ); // idle | verifying | success | error
+  const [message, setMessage] = useState(
+    urlStatus === "success"
+      ? "Your email has been successfully verified! Redirecting to login page..."
+      : urlError
+      ? decodeURIComponent(urlError)
+      : ""
+  );
   const [resendEmail, setResendEmail] = useState("");
   const [isResending, setIsResending] = useState(false);
   const [countdown, setCountdown] = useState(3);
+  const verificationAttemptedRef = useRef(false);
 
   useEffect(() => {
-    if (token) {
+    if (urlStatus === "success") {
+      setStatus("success");
+      setMessage("Your email has been successfully verified! Redirecting to login page...");
+      return;
+    }
+    if (urlError) {
+      setStatus("error");
+      setMessage(decodeURIComponent(urlError));
+      return;
+    }
+    if (token && !verificationAttemptedRef.current) {
+      verificationAttemptedRef.current = true;
       handleVerification(token);
     }
-  }, [token]);
+  }, [token, urlStatus, urlError]);
 
   useEffect(() => {
     let timer;
@@ -39,15 +67,19 @@ const VerifyEmail = () => {
       const result = await verifyEmail(verifyToken);
       if (result?.data?.success) {
         setStatus("success");
-        setMessage("Your email has been successfully verified! Redirecting to login page...");
-        toast.success("Email verified!");
+        setMessage(result?.data?.message || "Your email has been successfully verified! Redirecting to login page...");
+        toast.success("Email verified successfully!");
       } else {
         setStatus("error");
         setMessage(result?.data?.message || "Verification link is invalid or expired.");
       }
     } catch (error) {
+      const errMsg =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Failed to verify email. Token may be expired.";
       setStatus("error");
-      setMessage(error?.response?.data?.message || "Failed to verify email. Token may be expired.");
+      setMessage(errMsg);
     }
   };
 

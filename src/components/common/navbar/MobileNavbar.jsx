@@ -27,9 +27,17 @@ const MobileNavbar = ({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState({});
+  const [expandedSubCategories, setExpandedSubCategories] = useState({});
 
   const toggleCategoryExpand = (id) => {
     setExpandedCategories((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
+  };
+
+  const toggleSubCategoryExpand = (id) => {
+    setExpandedSubCategories((prev) => ({
       ...prev,
       [id]: !prev[id],
     }));
@@ -183,34 +191,19 @@ const MobileNavbar = ({
                       Home
                     </NavLink>
                   </li>
-                  <li>
-                    <NavLink
-                      to="/products"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className={({ isActive }) =>
-                        `px-4 py-2.5 rounded-xl font-bold text-sm block transition-colors ${
-                          isActive ? "bg-stone-900 text-white" : "text-stone-800 hover:bg-stone-100"
-                        }`
-                      }
-                    >
-                      Shop All Products
-                    </NavLink>
-                  </li>
 
                   {/* Categories Accordion */}
                   {categories.length > 0 &&
                     categories.map((cat) => (
                       <li key={cat._id} className="space-y-1">
                         <div className="flex items-center justify-between px-4 py-2.5 rounded-xl hover:bg-stone-100 transition">
-                          <NavLink
-                            to={cat?.subcategories?.length > 0 ? "#" : `/products/${cat.slug}`}
-                            onClick={() => {
-                              if (!cat?.subcategories?.length) setMobileMenuOpen(false);
-                            }}
+                          <Link
+                            to={`/products?category=${cat.slug}`}
+                            onClick={() => setMobileMenuOpen(false)}
                             className="font-bold text-sm text-stone-800 capitalize flex-1"
                           >
                             {cat.name}
-                          </NavLink>
+                          </Link>
 
                           {cat?.subcategories?.length > 0 && (
                             <button
@@ -228,18 +221,55 @@ const MobileNavbar = ({
 
                         {/* Subcategories */}
                         {cat?.subcategories?.length > 0 && expandedCategories[cat._id] && (
-                          <ul className="pl-6 space-y-1 border-l-2 border-stone-200 ml-4 py-1">
-                            {cat.subcategories.map((sub) => (
-                              <li key={sub._id}>
-                                <NavLink
-                                  to={`/products/${cat.slug}/${sub.slug}`}
-                                  onClick={() => setMobileMenuOpen(false)}
-                                  className="px-3 py-2 rounded-lg text-xs font-semibold text-stone-600 hover:text-black block capitalize hover:bg-stone-100"
-                                >
-                                  {sub.name}
-                                </NavLink>
-                              </li>
-                            ))}
+                          <ul className="pl-4 space-y-1 border-l-2 border-stone-200 ml-4 py-1">
+                            {cat.subcategories.map((sub) => {
+                              const hasChildren = (sub.childCategories || []).length > 0;
+                              const isSubExpanded = expandedSubCategories[sub._id];
+
+                              return (
+                                <li key={sub._id} className="space-y-1">
+                                  <div className="flex items-center justify-between px-3 py-1.5 rounded-lg hover:bg-stone-100 transition">
+                                    <Link
+                                      to={`/products?category=${cat.slug}&sub-category=${sub.slug}`}
+                                      onClick={() => setMobileMenuOpen(false)}
+                                      className="text-xs font-semibold text-stone-700 hover:text-black block capitalize flex-1"
+                                    >
+                                      {sub.name}
+                                    </Link>
+
+                                    {hasChildren && (
+                                      <button
+                                        onClick={() => toggleSubCategoryExpand(sub._id)}
+                                        className="p-1 text-stone-400 hover:text-black cursor-pointer"
+                                      >
+                                        {isSubExpanded ? (
+                                          <ChevronDown className="w-3.5 h-3.5" />
+                                        ) : (
+                                          <ChevronRight className="w-3.5 h-3.5" />
+                                        )}
+                                      </button>
+                                    )}
+                                  </div>
+
+                                  {/* Child Categories */}
+                                  {hasChildren && isSubExpanded && (
+                                    <ul className="pl-4 space-y-1 border-l border-stone-200 ml-3 py-1">
+                                      {sub.childCategories.map((child) => (
+                                        <li key={child._id}>
+                                          <Link
+                                            to={`/products?category=${cat.slug}&sub-category=${sub.slug}&child-category=${child.slug}`}
+                                            onClick={() => setMobileMenuOpen(false)}
+                                            className="px-2.5 py-1 rounded text-[11px] font-normal text-stone-500 hover:text-red-600 block capitalize"
+                                          >
+                                            {child.name}
+                                          </Link>
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  )}
+                                </li>
+                              );
+                            })}
                           </ul>
                         )}
                       </li>

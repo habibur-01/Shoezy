@@ -19,7 +19,7 @@ export const LoginForm = ({
   onSuccess,
   onSwitchToSignup,
   onSwitchToForgot,
-
+  initialEmail = '',
 }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
@@ -155,7 +155,12 @@ export const LoginForm = ({
       </div>
 
       {/* Form */}
-      <Formik initialValues={{ email: '', password: '', rememberMe: false }} validationSchema={loginSchema} onSubmit={(values) => { handleSubmit(values); }}>
+      <Formik
+        enableReinitialize
+        initialValues={{ email: initialEmail || '', password: '', rememberMe }}
+        validationSchema={loginSchema}
+        onSubmit={(values) => { handleSubmit({ ...values, rememberMe }); }}
+      >
         {({ errors, touched, values }) => (
 
           <Form className="space-y-4" noValidate>
@@ -167,8 +172,7 @@ export const LoginForm = ({
                   <div className="space-y-0.5">
                     <p className="font-semibold text-amber-900">Email Verification Required</p>
                     <p className="text-amber-800 text-[11px] leading-relaxed">
-                      Your email address (<strong>{unverifiedEmail}</strong>) is not verified yet.
-
+                      Your email address (<strong>{unverifiedEmail}</strong>) is not verified yet. Please check your inbox or click below to resend the verification link.
                     </p>
                   </div>
                 </div>
