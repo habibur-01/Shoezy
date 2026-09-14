@@ -16,7 +16,7 @@ export const DashboardKpiCards = ({
     : `$${(metrics?.totalRevenue || 0).toLocaleString()}`;
   const revenueGrowth = overview?.totalRevenue?.growth !== undefined
     ? `${overview.totalRevenue.growth >= 0 ? '+' : ''}${overview.totalRevenue.growth}%`
-    : '+18.4%';
+    : '0.0%';
   const revenueTrend = overview?.totalRevenue?.isPositive !== false ? 'up' : 'down';
   const revenueSubtitle = overview?.comparisonLabel
     ? `${overview.comparisonLabel} (${overview.timeframe || 'period'})`
@@ -33,7 +33,7 @@ export const DashboardKpiCards = ({
 
   const ordersGrowth = overview?.totalOrders?.growth !== undefined
     ? `${overview.totalOrders.growth >= 0 ? '+' : ''}${overview.totalOrders.growth}%`
-    : '+12.6%';
+    : '0.0%';
 
   const ordersSubtitle = overview?.fulfilledOrders?.deliveryRateLabel
     ? `${fulfilledOrdersCount} fulfilled (${overview.fulfilledOrders.deliveryRateLabel})`
@@ -50,8 +50,8 @@ export const DashboardKpiCards = ({
   const couponsCount = overview?.activePromotions?.count !== undefined
     ? overview.activePromotions.count
     : (metrics?.activeCouponsCount !== undefined ? metrics.activeCouponsCount : 0);
-  const couponsGrowth = overview?.activePromotions?.growthLabel || '+2 campaigns';
-  const couponsSubtitle = overview?.activePromotions?.subtitle || 'Average redemptions +34%';
+  const couponsGrowth = overview?.activePromotions?.growthLabel || `${couponsCount} active`;
+  const couponsSubtitle = overview?.activePromotions?.subtitle || 'Active discount campaigns';
 
   const cards = [
     {

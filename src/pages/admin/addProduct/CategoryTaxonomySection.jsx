@@ -105,11 +105,11 @@ export const CategoryTaxonomySection = ({
               onChange={(e) => handleCategoryChange(e.target.value)}
               className="w-full px-3 py-2 text-xs bg-zinc-50 border border-zinc-200 rounded-lg text-zinc-900 focus:outline-hidden focus:ring-2 focus:ring-zinc-900 focus:bg-white">
               
-              {categories.map((cat) =>
-              <option key={cat.id} value={cat.name}>
+              {categories.map((cat) => (
+                <option key={cat.id || cat._id || cat.name} value={cat.name}>
                   {cat.name}
                 </option>
-              )}
+              ))}
             </select>
           </div>
 
@@ -122,13 +122,13 @@ export const CategoryTaxonomySection = ({
               id="select-product-subcategory"
               value={subCategory}
               onChange={(e) => handleSubCategoryChange(e.target.value)}
-              className="w-full px-3 py-2 text-xs bg-zinc-50 border border-zinc-200 rounded-lg text-zinc-900 focus:outline-hidden focus:ring-2 focus:ring-zinc-900 focus:bg-white">
-              
-              {availableSubCategories.map((sub) =>
-              <option key={sub.id} value={sub.name}>
+              className="w-full px-3 py-2 text-xs bg-zinc-50 border border-zinc-200 rounded-lg text-zinc-900 focus:outline-hidden focus:ring-2 focus:ring-zinc-900 focus:bg-white"
+            >
+              {availableSubCategories.map((sub) => (
+                <option key={sub.id || sub._id || sub.name} value={sub.name}>
                   {sub.name}
                 </option>
-              )}
+              ))}
             </select>
           </div>
 
@@ -141,14 +141,14 @@ export const CategoryTaxonomySection = ({
               id="select-product-childcategory"
               value={childCategory}
               onChange={(e) => setChildCategory(e.target.value)}
-              className="w-full px-3 py-2 text-xs bg-zinc-50 border border-zinc-200 rounded-lg text-zinc-900 focus:outline-hidden focus:ring-2 focus:ring-zinc-900 focus:bg-white">
-              
+              className="w-full px-3 py-2 text-xs bg-zinc-50 border border-zinc-200 rounded-lg text-zinc-900 focus:outline-hidden focus:ring-2 focus:ring-zinc-900 focus:bg-white"
+            >
               <option value="">None / General</option>
-              {availableChildCategories.map((child) =>
-              <option key={child.id} value={child.name}>
+              {availableChildCategories.map((child) => (
+                <option key={child.id || child._id || child.name} value={child.name}>
                   {child.name}
                 </option>
-              )}
+              ))}
             </select>
           </div>
         </div>

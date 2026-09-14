@@ -38,6 +38,14 @@ export const ProductsView = ({
     setCurrentPage(1);
   }, [searchQuery, selectedCategory, stockFilter]);
 
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
+    const viewport = document.getElementById('admin-main-viewport');
+    if (viewport) {
+      viewport.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
   const isModalOpen = externalModalOpen !== undefined ? externalModalOpen : internalModalOpen;
   const setModalOpen = (open) => {
     if (setExternalModalOpen) {
@@ -237,8 +245,11 @@ export const ProductsView = ({
         totalPages={totalPages}
         totalItems={totalItems}
         itemsPerPage={itemsPerPage}
-        onPageChange={setCurrentPage}
-        onItemsPerPageChange={setItemsPerPage}
+        onPageChange={handlePageChange}
+        onItemsPerPageChange={(newSize) => {
+          setItemsPerPage(newSize);
+          handlePageChange(1);
+        }}
         pageSizeOptions={[10, 20, 50, 100]}
       />
 

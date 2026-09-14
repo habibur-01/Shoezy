@@ -87,6 +87,8 @@ const Router = () => {
         <Route path="/products/:categorySlug/:subSlug?/:slug" element={<ProductDetails />} />
         <Route path="/outlets" element={<OutletsPage />} />
         <Route path="/account/mycart" element={<CartPage />} />
+        <Route path="/track-order" element={<OrderTrackingPage />} />
+        <Route path="/track-order/:orderId" element={<OrderTrackingPage />} />
 
         {/* Private Customer Routes inside main layout */}
         <Route element={<PrivateRoute />}>
@@ -94,9 +96,6 @@ const Router = () => {
           <Route path="/account/wishlist" element={<WishlistPage />} />
           <Route path="/mycart/checkout" element={<CheckoutPage />} />
         </Route>
-
-        {/* Catch-all 404 route inside main store layout */}
-        <Route path="*" element={<ErrorPage />} />
       </Route>
 
       {/* Private Customer Profile Dashboard */}
@@ -108,8 +107,12 @@ const Router = () => {
         <Route path="myorders" element={<MyOrders />} />
         <Route path="returns" element={<MyReturns />} />
         <Route path="cancellations" element={<MyCancellations />} />
-        <Route path="track-order/:orderId?" element={<OrderTrackingPage />} />
+        <Route path="track-order" element={<OrderTrackingPage />} />
+        <Route path="track-order/:orderId" element={<OrderTrackingPage />} />
       </Route>
+
+      {/* Catch-all 404 route for any undefined path */}
+      <Route path="*" element={<ErrorPage />} />
     </Routes>
   );
 };

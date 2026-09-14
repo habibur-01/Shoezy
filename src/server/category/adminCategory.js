@@ -70,6 +70,19 @@ export const deleteAdminCategory = async (categoryId) => {
   }
 };
 
+export const reorderAdminCategories = async (categoryIds) => {
+  try {
+    const response = await api.put(
+      `${ADMIN_CATEGORY_ENDPOINT}/reorder`,
+      { categoryIds }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("reorderAdminCategories error:", error);
+    throw error;
+  }
+};
+
 // ============================================================
 // LEVEL 2: SUBCATEGORY CRUD
 // ============================================================

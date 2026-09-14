@@ -44,8 +44,8 @@ export const DELETE_REVIEW_ENDPOINT = "/api/user/review/delete"
 export const CHECK_CAN_REVIEW_ENDPOINT = "/api/user/review/can-review"
 
 // Order
-export const CREATE_ORDER_ENDPOINT ="api/user/order/create"
-export const GET_ORDER_ENDPOINT ="api/user/order"
+export const CREATE_ORDER_ENDPOINT = "/api/user/order/create";
+export const GET_ORDER_ENDPOINT = "/api/user/order";
 
 // Admin Products
 export const ADMIN_PRODUCTS_ENDPOINT = "/api/admin/product";
@@ -53,6 +53,8 @@ export const ADMIN_PRODUCT_ADD_ENDPOINT = "/api/admin/product/add";
 export const ADMIN_PRODUCT_UPDATE_ENDPOINT = "/api/admin/product";
 export const ADMIN_PRODUCT_DELETE_ENDPOINT = "/api/admin/product";
 export const ADMIN_PRODUCT_STOCK_ENDPOINT = "/api/admin/product";
+export const ADMIN_PRODUCT_UPLOAD_IMAGES_ENDPOINT = "/api/admin/product/upload-images";
+export const UPLOAD_PRODUCT_IMAGES_ENDPOINT = "/api/products/upload-product-images";
 
 // Admin Dashboard
 export const ADMIN_DASHBOARD_ENDPOINT = "/api/admin/dashboard";
@@ -68,3 +70,9 @@ export const ADMIN_CHILDCATEGORY_ADD_ENDPOINT = "/api/admin/child-category/add";
 
 // Admin Users & RBAC
 export const ADMIN_USERS_ENDPOINT = "/api/admin/users";
+
+// Admin Orders & Fulfillment
+export const ADMIN_ORDERS_ENDPOINT = "/api/admin/orders";
+
+// Admin Coupons
+export const ADMIN_COUPONS_ENDPOINT = "/api/admin/coupon";

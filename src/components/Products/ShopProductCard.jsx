@@ -76,8 +76,16 @@ const ShopProductCard = ({ product, viewMode }) => {
   };
 
   return (
-    <div className={`flex ${viewMode === 'grid' ? 'flex-col' : 'flex-row'} bg-white rounded-xl border border-stone-200 overflow-hidden group hover:shadow-lg transition-all duration-300 relative`}>
-      <div className="relative overflow-hidden">
+    <div
+      className={`flex ${
+        viewMode === "grid" ? "flex-col" : "flex-col sm:flex-row"
+      } bg-white rounded-xl border border-stone-200 overflow-hidden group hover:shadow-lg transition-all duration-300 relative`}
+    >
+      <div
+        className={`relative overflow-hidden ${
+          viewMode === "list" ? "w-full sm:w-60 md:w-64 sm:shrink-0" : "w-full"
+        }`}
+      >
         {product?.discount_price && originalPrice > product.discount_price && (
           <span className="absolute top-3 left-3 bg-stone-900 text-white text-[11px] font-bold px-2.5 py-1 rounded-md z-10 uppercase tracking-wider">
             SALE
@@ -102,24 +110,32 @@ const ShopProductCard = ({ product, viewMode }) => {
           <img
             src={coverImage}
             alt={product?.name || "Product"}
-            className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300 cursor-pointer"
+            className={`w-full ${
+              viewMode === "list" ? "h-56 sm:h-full" : "h-64"
+            } object-cover group-hover:scale-105 transition-transform duration-300 cursor-pointer`}
           />
         </Link>
       </div>
 
-      <div className={`p-5 flex ${viewMode === 'grid' ? "flex-col justify-between flex-1" : 'flex-row flex-1 justify-between items-center'}`}>
-        <div>
+      <div
+        className={`p-4 sm:p-5 flex ${
+          viewMode === "grid"
+            ? "flex-col justify-between flex-1"
+            : "flex-col sm:flex-row flex-1 justify-between sm:items-center gap-4"
+        }`}
+      >
+        <div className="flex-1 min-w-0">
           <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1 block">
             {product?.brand || "Brand"}
           </span>
           <Link to={`/products/${categorySlug}/${subCategorySlug}/${product?.slug}`}>
-            <h3 className="font-semibold text-stone-900 text-sm mb-2 line-clamp-2 hover:text-red-600 transition-colors cursor-pointer">
+            <h3 className="font-semibold text-stone-900 text-sm sm:text-base mb-1.5 line-clamp-2 hover:text-red-600 transition-colors cursor-pointer">
               {product?.name}
             </h3>
           </Link>
 
           {/* Rating */}
-          <div className="flex items-center gap-1 mb-3">
+          <div className="flex items-center gap-1 mb-2.5">
             {[...Array(5)].map((_, i) => (
               <span key={i} className={`text-xs ${i < Math.floor(rating) ? 'text-amber-400' : 'text-stone-200'}`}>
                 ★
@@ -141,9 +157,9 @@ const ShopProductCard = ({ product, viewMode }) => {
           </div>
         </div>
 
-        <div className={viewMode === 'grid' ? "mt-4" : ""}>
-          <Link to={`/products/${categorySlug}/${subCategorySlug}/${product?.slug}`}>
-            <button className="w-full bg-stone-900 hover:bg-stone-800 text-white font-semibold text-xs py-2.5 px-5 rounded-lg transition-colors cursor-pointer shadow-xs">
+        <div className={viewMode === "grid" ? "mt-4" : "mt-3 sm:mt-0 w-full sm:w-auto shrink-0"}>
+          <Link to={`/products/${categorySlug}/${subCategorySlug}/${product?.slug}`} className="block sm:inline-block">
+            <button className="w-full sm:w-auto bg-stone-900 hover:bg-stone-800 text-white font-semibold text-xs py-2.5 px-5 rounded-lg transition-colors cursor-pointer shadow-xs">
               View Details
             </button>
           </Link>

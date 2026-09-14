@@ -73,6 +73,7 @@ const ShopPage = () => {
     setRating,
     setSort,
     setPage,
+    setLimit,
     removeFilterItem,
     clearAllFilters,
   } = useProductFilters();
@@ -81,6 +82,13 @@ const ShopPage = () => {
   const effectiveCategorySlug = pathCat || (filters.categories.length === 1 ? filters.categories[0] : null);
   const effectiveSubSlug = pathSub || (filters.subCategories.length === 1 ? filters.subCategories[0] : null);
   const effectiveCategories = filters.categories.length > 0 ? filters.categories : (pathCat ? [pathCat] : []);
+
+  // Guard: if current page exceeds totalPages (e.g., after filtering), reset to page 1
+  useEffect(() => {
+    if (totalPages >= 1 && filters.page > totalPages) {
+      setPage(1);
+    }
+  }, [totalPages, filters.page, setPage]);
 
   // Fetch products whenever searchParams or pathParams change
   useEffect(() => {
@@ -225,7 +233,7 @@ const ShopPage = () => {
   return (
     <Container>
       <Breadcrumb />
-      <div className="px-4 py-6">
+      <div className="px-4 py-6" id="shop-products-top">
         <div className="flex flex-col lg:flex-row gap-8 items-start relative">
           {/* Sidebar - Desktop */}
           <div className="hidden lg:block w-80 flex-shrink-0 sticky top-24 self-start">
@@ -249,11 +257,11 @@ const ShopPage = () => {
           </div>
 
           {/* Main Product Content */}
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 w-full">
             {/* Header Title & Active Filter Summary */}
             <div className="mb-4">
-              <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-bold text-stone-900 capitalize tracking-tight">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-4">
+                <h1 className="text-xl sm:text-2xl font-bold text-stone-900 capitalize tracking-tight">
                   {pageTitle}
                 </h1>
                 <span className="text-xs font-semibold text-stone-500">
@@ -307,6 +315,7 @@ const ShopPage = () => {
               onSortChange={setSort}
               totalResults={totalProductsCount}
               currentCount={products?.length || 0}
+              activeFiltersCount={activeChips.length}
             />
 
             {/* Product Grid / Empty State */}
@@ -316,7 +325,18 @@ const ShopPage = () => {
                 <Pagination
                   currentPage={filters.page}
                   totalPages={totalPages}
-                  onPageChange={setPage}
+                  totalItems={totalProductsCount}
+                  itemsPerPage={filters.limit}
+                  onPageChange={(newPage) => {
+                    setPage(newPage);
+                    const topEl = document.getElementById("shop-products-top");
+                    if (topEl) {
+                      topEl.scrollIntoView({ behavior: "smooth", block: "start" });
+                    } else {
+                      window.scrollTo({ top: 120, behavior: "smooth" });
+                    }
+                  }}
+                  onItemsPerPageChange={setLimit}
                 />
               </div>
             ) : (

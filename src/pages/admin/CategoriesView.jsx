@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import { useAdmin } from '../context/AdminContext';
 
 import { CategoriesHeader } from './categories/CategoriesHeader';
@@ -27,6 +28,7 @@ export const CategoriesView = ({
     createCategory,
     updateCategory,
     deleteCategory,
+    reorderCategories,
     createSubCategory,
     updateSubCategory,
     deleteSubCategory,
@@ -229,7 +231,10 @@ export const CategoriesView = ({
         });
       }
     } else if (modalTier === 'subcategory') {
-      if (!targetParentCatId) return;
+      if (!targetParentCatId) {
+        toast.error("Please select a master category (e.g. Men, Women, Kids) first before adding a subcategory.");
+        return;
+      }
       if (modalMode === 'create') {
         createSubCategory(targetParentCatId, {
           categoryId: targetParentCatId,
@@ -247,7 +252,14 @@ export const CategoriesView = ({
         });
       }
     } else if (modalTier === 'child') {
-      if (!targetParentCatId || !targetParentSubCatId) return;
+      if (!targetParentCatId) {
+        toast.error("Please select a master category first.");
+        return;
+      }
+      if (!targetParentSubCatId) {
+        toast.error("Please select a parent subcategory (e.g. Shoe, Apparel) before adding a child category.");
+        return;
+      }
       if (modalMode === 'create') {
         createChildCategory(targetParentCatId, targetParentSubCatId, {
           subCategoryId: targetParentSubCatId,
@@ -361,7 +373,8 @@ export const CategoriesView = ({
           }}
           onOpenCreateModal={() => handleOpenCreateModal('category')}
           onOpenEditModal={(tier, node) => handleOpenEditModal(tier, node)}
-          onDeleteCategory={handleDeleteCategory} />
+          onDeleteCategory={handleDeleteCategory}
+          onReorderCategories={reorderCategories} />
         
 
           <SubCategoryColumn

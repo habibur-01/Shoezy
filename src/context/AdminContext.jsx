@@ -1,15 +1,8 @@
 import React, { createContext, useContext, useState, useMemo, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
-import {
-  INITIAL_ROLES,
-  INITIAL_TEAM_MEMBERS,
-  INITIAL_CATEGORIES,
-  INITIAL_PRODUCTS,
-  INITIAL_ORDERS,
-  INITIAL_COUPONS,
-  INITIAL_AUDIT_LOGS,
-  INITIAL_CUSTOMERS,
-} from '../data/mockData';
+import { setCategories as setReduxCategories } from '../redux/features/initial/initialSlice';
+import { INITIAL_ROLES } from '../data/mockData';
 import {
   getAdminProducts,
   createAdminProduct,
@@ -28,28 +21,76 @@ import {
   createAdminChildCategory,
   updateAdminChildCategory,
   deleteAdminChildCategory,
+  reorderAdminCategories,
 } from '../server/category/adminCategory';
+import {
+  getAdminOrders,
+  updateAdminOrderStatus as updateAdminOrderStatusApi,
+} from '../server/order/adminOrder';
+import {
+  getAdminCoupons,
+  createAdminCoupon as createAdminCouponApi,
+  updateAdminCoupon as updateAdminCouponApi,
+  deleteAdminCoupon as deleteAdminCouponApi,
+} from '../server/coupon/adminCoupon';
+import { getAllAdminUsers } from '../server/user/adminUser';
 
 const AdminContext = createContext(null);
 
 export const AdminProvider = ({ children }) => {
+  const dispatch = useDispatch();
+  const authUser = useSelector((state) => state.auth?.user);
+
   // Team and RBAC state
   const [roles, setRoles] = useState(INITIAL_ROLES);
-  const [teamMembers, setTeamMembers] = useState(INITIAL_TEAM_MEMBERS);
-  const [currentUserId, setCurrentUserId] = useState(INITIAL_TEAM_MEMBERS[0].id);
+  const [teamMembers, setTeamMembers] = useState([]);
 
-  // Active User & Active Role
+  // Active User Persona / Member ID
+  const [currentUserId, setCurrentUserId] = useState(authUser?._id || authUser?.id || 'usr-admin');
+
+  // Sync currentUserId when authUser becomes available
+  useEffect(() => {
+    if (authUser) {
+      setCurrentUserId(authUser._id || authUser.id || 'usr-admin');
+    }
+  }, [authUser]);
+
+  // Active User derived dynamically from authenticated user or selected persona
   const currentUser = useMemo(() => {
-    return teamMembers.find((m) => m.id === currentUserId) || teamMembers[0];
-  }, [teamMembers, currentUserId]);
+    const matchedMember = teamMembers.find((m) => m.id === currentUserId);
+    if (matchedMember) {
+      return matchedMember;
+    }
+
+    if (authUser) {
+      return {
+        id: authUser._id || authUser.id || 'usr-admin',
+        name: `${authUser.firstName || ''} ${authUser.lastName || ''}`.trim() || authUser.username || 'Administrator',
+        email: authUser.email || '',
+        avatar: authUser.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
+        roleId: authUser.role === 'admin' ? 'super_admin' : (authUser.role || 'super_admin'),
+        role: authUser.role || 'admin',
+        status: authUser.status || 'active',
+      };
+    }
+    return {
+      id: 'usr-admin',
+      name: 'Administrator',
+      email: 'admin@shoezy.com',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
+      roleId: 'super_admin',
+      role: 'admin',
+      status: 'active',
+    };
+  }, [authUser, currentUserId, teamMembers]);
 
   const currentRole = useMemo(() => {
     return roles.find((r) => r.id === currentUser?.roleId) || roles[0];
   }, [roles, currentUser]);
 
-  // Catalog & Inventory state
-  const [products, setProducts] = useState(INITIAL_PRODUCTS);
-  const [categories, setCategories] = useState(INITIAL_CATEGORIES);
+  // Catalog & Inventory state - Zero mock data, loaded directly from database
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [isLoadingProducts, setIsLoadingProducts] = useState(true);
   const [productsError, setProductsError] = useState(null);
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
@@ -97,8 +138,9 @@ export const AdminProvider = ({ children }) => {
         setProducts(normalized);
       }
     } catch (err) {
-      console.warn('API error loading products, using fallback:', err.message);
+      console.warn('API error loading products:', err.message);
       setProductsError(err.message);
+      setProducts([]);
     } finally {
       setIsLoadingProducts(false);
     }
@@ -160,48 +202,265 @@ export const AdminProvider = ({ children }) => {
       if (Array.isArray(treeData) && treeData.length > 0) {
         const normalized = normalizeCategoryTree(treeData);
         setCategories(normalized);
+      } else {
+        setCategories([]);
       }
     } catch (err) {
-      console.warn('API error loading category tree, using fallback:', err.message);
+      console.warn('API error loading category tree:', err.message);
       setCategoriesError(err.message);
+      setCategories([]);
     } finally {
       setIsLoadingCategories(false);
+    }
+  };
+
+  // Orders, Customers, Coupons, Audit - Zero demo data, purely real database records
+  const [orders, setOrders] = useState([]);
+  const [customers, setCustomers] = useState([]);
+  const [coupons, setCoupons] = useState([]);
+  const [auditLogs, setAuditLogs] = useState([]);
+  const [realtimeAlerts, setRealtimeAlerts] = useState([]);
+
+  // Shipping carriers state for fulfillment and manual order intake
+  const [shippingCarriers, setShippingCarriers] = useState([
+    {
+      id: 'carrier_fedex',
+      name: 'FedEx Express',
+      serviceType: 'Priority Air Transit',
+      baseRate: 24.5,
+      estimatedDays: '1-2 Days',
+      trackingPrefix: 'FDX-',
+      isCustom: false,
+    },
+    {
+      id: 'carrier_ups',
+      name: 'UPS Ground',
+      serviceType: 'Standard Overland Transit',
+      baseRate: 15.0,
+      estimatedDays: '3-5 Days',
+      trackingPrefix: 'UPS-',
+      isCustom: false,
+    },
+    {
+      id: 'carrier_dhl',
+      name: 'DHL Express',
+      serviceType: 'Global Courier Transit',
+      baseRate: 35.0,
+      estimatedDays: '2-3 Days',
+      trackingPrefix: 'DHL-',
+      isCustom: false,
+    },
+    {
+      id: 'carrier_usps',
+      name: 'USPS Priority',
+      serviceType: 'Postal Express',
+      baseRate: 12.0,
+      estimatedDays: '2-4 Days',
+      trackingPrefix: 'USPS-',
+      isCustom: false,
+    },
+    {
+      id: 'carrier_steadfast',
+      name: 'Steadfast Courier',
+      serviceType: 'Nationwide Delivery Network',
+      baseRate: 80.0,
+      estimatedDays: '24-48 Hours',
+      trackingPrefix: 'STF-',
+      isCustom: false,
+    },
+    {
+      id: 'carrier_redx',
+      name: 'RedX Express',
+      serviceType: 'Fast Door-to-Door Delivery',
+      baseRate: 70.0,
+      estimatedDays: '24-48 Hours',
+      trackingPrefix: 'RDX-',
+      isCustom: false,
+    },
+    {
+      id: 'carrier_pathao',
+      name: 'Pathao Courier',
+      serviceType: 'City On-Demand Express',
+      baseRate: 60.0,
+      estimatedDays: 'Same / Next Day',
+      trackingPrefix: 'PTH-',
+      isCustom: false,
+    },
+  ]);
+
+  const addShippingCarrier = (newCarrierData) => {
+    const newCarrier = {
+      id: `carrier_${Date.now()}`,
+      isCustom: true,
+      ...newCarrierData,
+    };
+    setShippingCarriers((prev) => [...prev, newCarrier]);
+    toast.success(`Shipping carrier "${newCarrier.name}" added successfully.`);
+    return newCarrier;
+  };
+
+  // Load real orders from backend
+  const loadOrders = async () => {
+    try {
+      const res = await getAdminOrders();
+      const ordersData = res?.data || (Array.isArray(res) ? res : []);
+      if (Array.isArray(ordersData)) {
+        const normalized = ordersData.map((o) => {
+          const subtotal = Number(
+            o.subtotal ??
+            (o.items || []).reduce(
+              (acc, it) => acc + (Number(it.price || 0) * Number(it.quantity || 1)),
+              0
+            )
+          );
+          const total = Number(o.total ?? o.total_amount ?? o.totalAmount ?? subtotal);
+          const discount = Number(o.discount ?? Math.max(0, subtotal - total));
+
+          const shippingAddr = o.shippingAddress || {
+            street: o.shipping?.street || o.shipping?.address || 'N/A',
+            address: o.shipping?.address || o.shipping?.street || 'N/A',
+            city: o.shipping?.city || 'N/A',
+            state: o.shipping?.state || '',
+            postalCode: o.shipping?.postalCode || o.shipping?.postal_code || '',
+            postal_code: o.shipping?.postal_code || o.shipping?.postalCode || '',
+            country: o.shipping?.country || 'Bangladesh',
+          };
+
+          return {
+            ...o,
+            id: o._id || o.id,
+            _id: o._id || o.id,
+            orderNumber: o.orderNumber || (o._id ? `#${String(o._id).slice(-6).toUpperCase()}` : o.id),
+            customerName:
+              o.customerName ||
+              (o.user
+                ? `${o.user.firstName || ''} ${o.user.lastName || ''}`.trim() || o.user.username || o.user.email
+                : 'Customer'),
+            customerEmail: o.customerEmail || o.user?.email || '',
+            customerPhone: o.customerPhone || o.user?.phone || '',
+            items: (o.items || []).map((it) => ({
+              product: it.product?._id || it.product,
+              name: it.title || it.name || it.product?.name || 'Product',
+              title: it.title || it.name || it.product?.name || 'Product',
+              sku: it.sku || it.product?.sku || (it.product?._id ? String(it.product._id).slice(-8).toUpperCase() : 'SHZ-PRD'),
+              price: Number(it.price || 0),
+              quantity: Number(it.quantity || 1),
+              subtotal: Number(it.subtotal || (Number(it.price || 0) * Number(it.quantity || 1))),
+              image: it.image || it.product?.images?.cover || '',
+            })),
+            subtotal,
+            total,
+            totalAmount: total,
+            total_amount: total,
+            discount,
+            couponCode: o.couponCode || o.appliedCoupon || '',
+            appliedCoupon: o.appliedCoupon || o.couponCode || '',
+            status: o.status || 'pending',
+            orderStatus: o.status || 'pending',
+            paymentMethod: o.paymentMethod || o.payment?.paymentMethod?.name || o.payment?.method || 'Cash on Delivery',
+            paymentStatus: o.paymentStatus || o.payment?.status || (o.status === 'delivered' ? 'paid' : 'pending'),
+            carrier: o.carrier || o.shipping?.carrier || 'FedEx Express',
+            shipping_medium: o.shipping_medium || o.shipping?.shipping_medium || 'Express Courier',
+            shippingMedium: o.shippingMedium || o.shipping?.shippingMedium || 'Express Courier',
+            trackingNumber:
+              o.trackingNumber ||
+              o.shipping?.trackingNumber ||
+              (o._id ? `TRK-${String(o._id).slice(-8).toUpperCase()}` : ''),
+            shippingAddress: shippingAddr,
+            shipping: {
+              ...o.shipping,
+              ...shippingAddr,
+              carrier: o.carrier || o.shipping?.carrier || 'FedEx Express',
+              shipping_medium: o.shipping_medium || o.shipping?.shipping_medium || 'Express Courier',
+              shippingMedium: o.shippingMedium || o.shipping?.shippingMedium || 'Express Courier',
+              trackingNumber:
+                o.trackingNumber ||
+                o.shipping?.trackingNumber ||
+                (o._id ? `TRK-${String(o._id).slice(-8).toUpperCase()}` : ''),
+            },
+            timeline: Array.isArray(o.timeline) ? o.timeline : [],
+            confirmedBy: o.confirmedBy || null,
+            confirmedByName: o.confirmedByName || o.confirmedBy?.name || null,
+            confirmedAt: o.confirmedAt || null,
+            updatedBy: o.updatedBy || null,
+            updatedByName: o.updatedByName || o.updatedBy?.name || null,
+            lastActivity: o.lastActivity || null,
+            activities: Array.isArray(o.activities) ? o.activities : [],
+            createdAt: o.createdAt || o.created_at || new Date().toISOString(),
+            created_at: o.created_at || o.createdAt || new Date().toISOString(),
+          };
+        });
+        setOrders(normalized);
+      }
+    } catch (err) {
+      console.warn('API error loading orders:', err.message);
+    }
+  };
+
+  // Load real users/customers from backend
+  const loadCustomers = async () => {
+    try {
+      const res = await getAllAdminUsers();
+      const usersData = res?.data || (Array.isArray(res) ? res : []);
+      if (Array.isArray(usersData)) {
+        const normalized = usersData.map((u) => ({
+          id: u._id || u.id,
+          _id: u._id || u.id,
+          name: `${u.firstName || ''} ${u.lastName || ''}`.trim() || u.username || u.email || 'Customer',
+          email: u.email || '',
+          phone: u.phone || '',
+          role: u.role || 'user',
+          status: u.status || 'active',
+          tier: u.tier || (u.role === 'admin' ? 'VIP' : 'Regular'),
+          ordersCount: Number(u.ordersCount ?? 0),
+          totalSpent: Number(u.totalSpent ?? 0),
+          city: u.city || 'N/A',
+          country: u.country || 'N/A',
+          lastOrderDate: u.lastOrderDate || (u.createdAt ? new Date(u.createdAt).toLocaleDateString() : 'N/A'),
+          createdAt: u.createdAt,
+        }));
+        setCustomers(normalized);
+      }
+    } catch (err) {
+      console.warn('API error loading users:', err.message);
+    }
+  };
+
+  // Load real coupons from backend
+  const loadCoupons = async () => {
+    try {
+      const res = await getAdminCoupons();
+      const couponsData = res?.data || (Array.isArray(res) ? res : []);
+      if (Array.isArray(couponsData)) {
+        const normalized = couponsData.map((c) => ({
+          id: c._id || c.id,
+          _id: c._id || c.id,
+          code: c.code,
+          description: c.description || '',
+          discountType: c.discountType || 'percentage',
+          discountValue: c.discountValue || c.discount || 0,
+          minSpend: c.minPurchase || c.minSpend || 0,
+          status: c.isActive ? 'active' : (c.status || 'active'),
+          timesUsed: c.timesUsed || 0,
+          expiryDate: c.expiryDate,
+        }));
+        setCoupons(normalized);
+      }
+    } catch (err) {
+      console.warn('API error loading coupons:', err.message);
     }
   };
 
   useEffect(() => {
     loadProducts();
     loadCategories();
+    loadOrders();
+    loadCustomers();
+    loadCoupons();
   }, []);
-
-  // Orders, Customers, Coupons, Audit
-  const [orders, setOrders] = useState(INITIAL_ORDERS);
-  const [customers, setCustomers] = useState(INITIAL_CUSTOMERS);
-  const [coupons, setCoupons] = useState(INITIAL_COUPONS);
-  const [auditLogs, setAuditLogs] = useState(INITIAL_AUDIT_LOGS);
 
   // Realtime Inventory & Alerts engine
   const [isRealtimeActive, setIsRealtimeActive] = useState(true);
-  const [realtimeAlerts, setRealtimeAlerts] = useState([
-    {
-      id: 'alt-1',
-      type: 'low_stock',
-      title: 'Low Stock Alert',
-      message: 'New Balance 990v6 has only 3 units remaining in main warehouse',
-      time: '5m ago',
-      severity: 'amber',
-      read: false,
-    },
-    {
-      id: 'alt-2',
-      type: 'high_order',
-      title: 'High Velocity Checkout',
-      message: 'Order #SHZ-8829 ($349.00) received via Stripe Express',
-      time: '18m ago',
-      severity: 'emerald',
-      read: false,
-    },
-  ]);
 
   // RBAC unauthorized popup state
   const [unauthorizedNotice, setUnauthorizedNotice] = useState(null);
@@ -290,7 +549,10 @@ export const AdminProvider = ({ children }) => {
   const addAuditLog = ({ action, entity, entityId, details, severity = 'info', status = 'Success' }) => {
     const newLog = {
       id: `aud-${Date.now()}`,
-      timestamp: 'Just now',
+      timestamp: new Date().toISOString(),
+      actorName: currentUser?.name || 'Administrator',
+      actorEmail: currentUser?.email || 'admin@shoezy.com',
+      actorRole: currentRole?.name || 'Administrator',
       actor: {
         id: currentUser?.id || 'usr-system',
         name: currentUser?.name || 'System Operator',
@@ -298,10 +560,11 @@ export const AdminProvider = ({ children }) => {
         avatar: currentUser?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
         role: currentRole?.name || 'Operator',
       },
+      category: entity || 'System',
       action,
       entity,
       entityId: String(entityId || ''),
-      details,
+      details: details || `Operation performed on ${entity || 'System'}`,
       severity,
       status,
       ipAddress: '127.0.0.1 (Session Terminal)',
@@ -358,32 +621,10 @@ export const AdminProvider = ({ children }) => {
       toast.success(`Product "${newProduct.title}" created successfully!`);
       return newProduct;
     } catch (err) {
-      console.warn("Falling back to local product creation:", err.message);
-      const newProduct = {
-        id: `prd-${Date.now()}`,
-        rating: 5.0,
-        reviewsCount: 0,
-        status: productData.status || 'published',
-        image: productData.image || productData.images?.[0] || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=600&q=80',
-        ...productData,
-        stock: Number(productData.stock || 0),
-        price: Number(productData.price || 0),
-        cost: Number(productData.cost || productData.costPrice || 0),
-        costPrice: Number(productData.costPrice || productData.cost || 0),
-        lowStockThreshold: Number(productData.lowStockThreshold || 8),
-      };
-
-      setProducts((prev) => [newProduct, ...prev]);
-
-      addAuditLog({
-        action: 'PRODUCT_CREATED',
-        entity: 'Catalog',
-        entityId: newProduct.id,
-        details: `Published new product "${newProduct.title}" (SKU: ${newProduct.sku})`,
-      });
-
-      toast.success(`Product "${newProduct.title}" created!`);
-      return newProduct;
+      console.error("API error creating product:", err);
+      const errMsg = err?.response?.data?.message || err?.message || "Failed to create product";
+      toast.error(errMsg);
+      return null;
     }
   };
 
@@ -518,6 +759,29 @@ export const AdminProvider = ({ children }) => {
     } catch (err) {
       console.warn('API category delete error:', err.message);
       toast.info('Category removed locally.');
+    }
+  };
+
+  const reorderCategories = async (newOrderedList) => {
+    setCategories(newOrderedList);
+    try {
+      dispatch(setReduxCategories(newOrderedList));
+    } catch (_) {}
+
+    const categoryIds = newOrderedList.map((c) => c.id || c._id);
+    try {
+      const res = await reorderAdminCategories(categoryIds);
+      if (res?.data && Array.isArray(res.data)) {
+        const normalized = normalizeCategoryTree(res.data);
+        setCategories(normalized);
+        try {
+          dispatch(setReduxCategories(normalized));
+        } catch (_) {}
+      }
+      toast.success('Category display order updated');
+    } catch (err) {
+      console.warn('Failed to save category order to backend:', err.message);
+      toast.error('Failed to sync category order with server');
     }
   };
 
@@ -734,80 +998,244 @@ export const AdminProvider = ({ children }) => {
   };
 
   // ==========================================
-  // ORDERS MANAGEMENT
+  // ORDERS MANAGEMENT (API INTEGRATED)
   // ==========================================
-  const updateOrderStatus = (orderId, newStatus) => {
-    setOrders((prev) =>
-      prev.map((o) => (o.id === orderId ? { ...o, orderStatus: newStatus } : o))
-    );
+  const updateOrderStatus = async (orderId, newStatus, carrier, trackingNumber, notes) => {
+    const adminUserId = currentUser?.id && currentUser?.id !== 'usr-admin' ? currentUser?.id : undefined;
+    const actorName = currentUser?.name || 'Administrator';
+    const actorRole = currentRole?.name || currentUser?.role || 'Admin';
+    const actorEmail = currentUser?.email || 'admin@shoezy.com';
 
-    addAuditLog({
-      action: 'ORDER_STATUS_CHANGED',
-      entity: 'Orders',
-      entityId: orderId,
-      details: `Advanced order #${orderId} status to "${newStatus}"`,
-    });
-
-    toast.success(`Order #${orderId} updated to ${newStatus}`);
-  };
-
-  const cancelAndRefundOrder = (orderId, reason = 'Customer cancellation request') => {
     setOrders((prev) =>
       prev.map((o) =>
-        o.id === orderId
-          ? { ...o, orderStatus: 'cancelled', paymentStatus: 'refunded' }
+        o.id === orderId || o._id === orderId
+          ? {
+              ...o,
+              status: newStatus,
+              orderStatus: newStatus,
+              carrier: carrier || o.carrier,
+              trackingNumber: trackingNumber || o.trackingNumber,
+              updatedByName: actorName,
+              lastActivity: {
+                actorName,
+                actorRole,
+                action: newStatus === 'processing' ? 'ORDER_CONFIRMED' : 'STATUS_UPDATED',
+                newStatus,
+                carrier: carrier || o.carrier,
+                trackingNumber: trackingNumber || o.trackingNumber,
+                note: notes || `Status updated to ${newStatus}`,
+                timestamp: new Date().toISOString(),
+              },
+            }
           : o
       )
     );
 
-    addAuditLog({
-      action: 'ORDER_CANCELLED_REFUNDED',
-      entity: 'Orders',
-      entityId: orderId,
-      details: `Cancelled and refunded order #${orderId}. Reason: ${reason}`,
-      severity: 'warning',
-    });
+    try {
+      await updateAdminOrderStatusApi(orderId, newStatus, {
+        carrier,
+        trackingNumber,
+        notes,
+        adminUserId,
+        actorName,
+        actorRole,
+        actorEmail,
+      });
+      toast.success(`Order status updated to "${newStatus}".`);
+      await loadOrders();
+      return true;
+    } catch (err) {
+      console.warn('Backend order update error:', err.message);
+      return false;
+    } finally {
+      addAuditLog({
+        action: 'ORDER_STATUS_CHANGED',
+        entity: 'Orders',
+        entityId: orderId,
+        details: `Advanced order #${orderId} status to "${newStatus}" by ${actorName}`,
+      });
+    }
+  };
 
-    toast.info(`Order #${orderId} was cancelled and marked as refunded.`);
+  const cancelAndRefundOrder = async (orderId, reason = 'Customer cancellation request') => {
+    const adminUserId = currentUser?.id && currentUser?.id !== 'usr-admin' ? currentUser?.id : undefined;
+    const actorName = currentUser?.name || 'Administrator';
+    const actorRole = currentRole?.name || currentUser?.role || 'Admin';
+    const actorEmail = currentUser?.email || 'admin@shoezy.com';
+
+    setOrders((prev) =>
+      prev.map((o) =>
+        o.id === orderId || o._id === orderId
+          ? {
+              ...o,
+              status: 'cancelled',
+              orderStatus: 'cancelled',
+              paymentStatus: 'refunded',
+              updatedByName: actorName,
+              lastActivity: {
+                actorName,
+                actorRole,
+                action: 'ORDER_CANCELLED',
+                newStatus: 'cancelled',
+                note: reason,
+                timestamp: new Date().toISOString(),
+              },
+            }
+          : o
+      )
+    );
+
+    try {
+      await updateAdminOrderStatusApi(orderId, 'cancelled', {
+        notes: reason,
+        adminUserId,
+        actorName,
+        actorRole,
+        actorEmail,
+      });
+      toast.info(`Order #${orderId} marked as cancelled and refunded.`);
+      await loadOrders();
+      return true;
+    } catch (err) {
+      console.warn('Backend order cancel error:', err.message);
+      return false;
+    } finally {
+      addAuditLog({
+        action: 'ORDER_CANCELLED_REFUNDED',
+        entity: 'Orders',
+        entityId: orderId,
+        details: `Cancelled and refunded order #${orderId} by ${actorName}. Reason: ${reason}`,
+        severity: 'warning',
+      });
+    }
+  };
+
+  const createOrder = async (orderPayload) => {
+    try {
+      const newId = `ord_${Date.now()}`;
+      const newOrder = {
+        id: newId,
+        _id: newId,
+        orderNumber: `#${newId.slice(-6).toUpperCase()}`,
+        customerName: orderPayload.customerName,
+        customerEmail: orderPayload.customerEmail,
+        customerPhone: orderPayload.customerPhone || '',
+        items: (orderPayload.items || []).map((it) => ({
+          product: it.productId || it.product?._id || it.product,
+          name: it.title || it.name || 'Product',
+          title: it.title || it.name || 'Product',
+          sku: it.sku || 'N/A',
+          quantity: it.quantity || 1,
+          price: it.price || 0,
+          subtotal: (it.price || 0) * (it.quantity || 1),
+          image: it.image || '',
+        })),
+        subtotal: orderPayload.subtotal || 0,
+        discount: orderPayload.discount || 0,
+        total: orderPayload.total || 0,
+        totalAmount: orderPayload.total || 0,
+        couponCode: orderPayload.couponCode || '',
+        status: orderPayload.status || 'processing',
+        orderStatus: orderPayload.status || 'processing',
+        paymentStatus: orderPayload.paymentStatus || 'paid',
+        paymentMethod: orderPayload.paymentMethod || 'Manual',
+        carrier: orderPayload.carrier || 'FedEx Express',
+        shipping_medium: orderPayload.carrier || 'Express Courier',
+        shippingMedium: orderPayload.carrier || 'Express Courier',
+        trackingNumber: orderPayload.trackingNumber || `TRK-${Math.floor(10000000 + Math.random() * 90000000)}`,
+        shippingAddress: orderPayload.shippingAddress || {
+          street: 'Local Storefront',
+          city: 'Dhaka',
+          state: '',
+          postalCode: '1200',
+          country: 'Bangladesh',
+        },
+        timeline: [
+          {
+            status: orderPayload.status || 'processing',
+            timestamp: new Date().toISOString(),
+            actor: currentUser?.name || 'Operations Admin',
+            note: `Order recorded via Omnichannel Intake (${orderPayload.source || 'manual'})`,
+          },
+        ],
+        createdAt: new Date().toISOString(),
+      };
+
+      setOrders((prev) => [newOrder, ...prev]);
+      addAuditLog({
+        action: 'ORDER_CREATED',
+        entity: 'Orders',
+        entityId: newId,
+        details: `Intake order #${newId} for ${orderPayload.customerName} ($${orderPayload.total})`,
+      });
+      toast.success('Order recorded successfully!');
+      return { success: true, orderId: newId };
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
   };
 
   // ==========================================
-  // COUPONS MANAGEMENT
+  // COUPONS MANAGEMENT (API INTEGRATED)
   // ==========================================
-  const createCoupon = (couponData) => {
-    const newCoupon = {
-      id: `cpn-${Date.now()}`,
-      timesUsed: 0,
-      status: 'active',
-      validFrom: new Date().toISOString().split('T')[0],
-      ...couponData,
-    };
-    setCoupons((prev) => [newCoupon, ...prev]);
-
-    addAuditLog({
-      action: 'PROMO_COUPON_CREATED',
-      entity: 'Coupons',
-      entityId: newCoupon.id,
-      details: `Created promotional code "${newCoupon.code}" (${newCoupon.discountValue}% off)`,
-    });
-
-    toast.success(`Coupon code ${newCoupon.code} created!`);
+  const createCoupon = async (couponData) => {
+    try {
+      const res = await createAdminCouponApi({
+        code: couponData.code,
+        discount: couponData.discountValue,
+        discountType: couponData.discountType,
+        minPurchase: couponData.minSpend,
+        expiryDate: couponData.expiryDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        isActive: true,
+      });
+      const created = res?.data || res;
+      const newCoupon = {
+        id: created._id || created.id || `cpn-${Date.now()}`,
+        _id: created._id || created.id,
+        code: created.code || couponData.code,
+        timesUsed: 0,
+        status: 'active',
+        discountType: couponData.discountType,
+        discountValue: couponData.discountValue,
+        minSpend: couponData.minSpend,
+        validFrom: new Date().toISOString().split('T')[0],
+      };
+      setCoupons((prev) => [newCoupon, ...prev]);
+      toast.success(`Coupon code ${newCoupon.code} created!`);
+      return newCoupon;
+    } catch (err) {
+      console.error('Failed to create coupon:', err);
+      toast.error(err?.response?.data?.message || err?.message || 'Failed to create coupon');
+      return null;
+    }
   };
 
-  const toggleCouponStatus = (couponId) => {
+  const toggleCouponStatus = async (couponId) => {
+    const current = coupons.find((c) => c.id === couponId || c._id === couponId);
+    const nextStatus = current?.status === 'active' ? 'inactive' : 'active';
     setCoupons((prev) =>
       prev.map((c) =>
-        c.id === couponId
-          ? { ...c, status: c.status === 'active' ? 'inactive' : 'active' }
+        c.id === couponId || c._id === couponId
+          ? { ...c, status: nextStatus }
           : c
       )
     );
-    toast.info('Coupon status toggled.');
+    try {
+      await updateAdminCouponApi(couponId, { isActive: nextStatus === 'active' });
+      toast.info('Coupon status updated.');
+    } catch (err) {
+      console.warn('API coupon toggle error:', err.message);
+    }
   };
 
-  const deleteCoupon = (couponId) => {
-    setCoupons((prev) => prev.filter((c) => c.id !== couponId));
-    toast.info('Coupon deleted.');
+  const deleteCoupon = async (couponId) => {
+    setCoupons((prev) => prev.filter((c) => c.id !== couponId && c._id !== couponId));
+    try {
+      await deleteAdminCouponApi(couponId);
+      toast.info('Coupon deleted.');
+    } catch (err) {
+      console.warn('API coupon delete error:', err.message);
+    }
   };
 
   // ==========================================
@@ -929,6 +1357,7 @@ export const AdminProvider = ({ children }) => {
         createCategory,
         updateCategory,
         deleteCategory,
+        reorderCategories,
         createSubCategory,
         updateSubCategory,
         deleteSubCategory,
@@ -938,8 +1367,12 @@ export const AdminProvider = ({ children }) => {
 
         // Orders
         orders,
+        refreshOrders: loadOrders,
         updateOrderStatus,
         cancelAndRefundOrder,
+        createOrder,
+        shippingCarriers,
+        addShippingCarrier,
 
         // Customers
         customers,

@@ -5,7 +5,27 @@ import {
   ADMIN_PRODUCT_UPDATE_ENDPOINT,
   ADMIN_PRODUCT_DELETE_ENDPOINT,
   ADMIN_PRODUCT_STOCK_ENDPOINT,
+  UPLOAD_PRODUCT_IMAGES_ENDPOINT,
 } from "../../endpoint";
+
+// Upload product images (multiple files or cover/gallery)
+export const uploadProductImages = async (formData) => {
+  try {
+    const response = await api.post(
+      UPLOAD_PRODUCT_IMAGES_ENDPOINT,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("uploadProductImages error:", error);
+    throw error;
+  }
+};
 
 // Fetch admin products with optional filters (search, category, stockFilter, page, limit, sortBy)
 export const getAdminProducts = async (params = {}) => {

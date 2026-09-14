@@ -301,6 +301,22 @@ export const useProductFilters = () => {
     [updateParams]
   );
 
+  // Set Limit (items per page)
+  const setLimit = useCallback(
+    (limitNum) => {
+      updateParams((params) => {
+        const num = Number(limitNum);
+        if (num && num !== 12) {
+          params.set("limit", String(num));
+        } else {
+          params.delete("limit");
+        }
+        params.delete("page");
+      });
+    },
+    [updateParams]
+  );
+
   // Remove a specific filter item from multi-value params, or remove single param
   const removeFilterItem = useCallback(
     (paramKey, valueToRemove) => {
@@ -342,6 +358,7 @@ export const useProductFilters = () => {
     setRating,
     setSort,
     setPage,
+    setLimit,
     removeFilterItem,
     clearAllFilters,
   };

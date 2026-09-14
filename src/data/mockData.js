@@ -459,34 +459,6 @@ export const INITIAL_CATEGORIES = [
       },
     ],
   },
-  {
-    id: 'cat-care',
-    name: 'Shoe Care & Accessories',
-    slug: 'accessories',
-    description: 'Premium cleaning kits, hydrophobic sprays, orthotic insoles, and specialty laces.',
-    image: 'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=500&q=80',
-    productCount: 14,
-    subCategories: [
-      {
-        id: 'sub-care-kits',
-        name: 'Cleaning & Protection',
-        slug: 'care',
-        childCategories: [
-          { id: 'child-care-cleaners', name: 'Foam Cleaners' },
-          { id: 'child-care-waterproof', name: 'Hydrophobic Shield' },
-        ],
-      },
-      {
-        id: 'sub-accessories-insoles',
-        name: 'Insoles & Laces',
-        slug: 'insoles-laces',
-        childCategories: [
-          { id: 'child-acc-cushion', name: 'Memory Foam Insoles' },
-          { id: 'child-acc-laces', name: 'Reflective Rope Laces' },
-        ],
-      },
-    ],
-  },
 ];
 
 // ==========================================

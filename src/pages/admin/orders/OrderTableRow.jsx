@@ -27,9 +27,9 @@ export const OrderTableRow = ({ order, onOpenDetail }) => {
     <tr className="hover:bg-zinc-50/60 transition-colors">
       {/* Order ID */}
       <td className="py-3 px-4">
-        <div className="font-mono font-bold text-zinc-900">{order.id}</div>
+        <div className="font-mono font-bold text-zinc-900">{order.id || order._id}</div>
         <div className="text-[10px] text-zinc-400">
-          {new Date(order.createdAt).toLocaleDateString([], {
+          {new Date(order.createdAt || order.created_at || Date.now()).toLocaleDateString([], {
             month: 'short',
             day: 'numeric',
             year: 'numeric'
@@ -39,28 +39,28 @@ export const OrderTableRow = ({ order, onOpenDetail }) => {
 
       {/* Customer */}
       <td className="py-3 px-4">
-        <div className="font-medium text-zinc-900">{order.customerName}</div>
+        <div className="font-medium text-zinc-900">{order.customerName || 'Customer'}</div>
         <div className="text-[10px] text-zinc-400 truncate max-w-[150px]">
-          {order.customerEmail}
+          {order.customerEmail || ''}
         </div>
       </td>
 
       {/* Items */}
       <td className="py-3 px-4">
         <div className="font-medium text-zinc-800">
-          {order.items.map((it) => `${it.quantity}x ${it.title}`).join(', ')}
+          {(order.items || []).map((it) => `${it.quantity || 1}x ${it.title || it.name || 'Item'}`).join(', ')}
         </div>
-        <div className="text-[10px] text-zinc-400">{order.items.length} unique line item(s)</div>
+        <div className="text-[10px] text-zinc-400">{(order.items || []).length} unique line item(s)</div>
       </td>
 
       {/* Financials */}
       <td className="py-3 px-4">
-        <div className="font-bold text-zinc-900">${order.total.toFixed(2)}</div>
+        <div className="font-bold text-zinc-900">${Number(order.total ?? order.totalAmount ?? 0).toFixed(2)}</div>
         <div className="text-[10px] text-zinc-400">
-          {order.discount > 0 &&
-          <span className="text-emerald-600">Saved ${order.discount.toFixed(2)} • </span>
+          {Number(order.discount || 0) > 0 &&
+          <span className="text-emerald-600">Saved ${Number(order.discount).toFixed(2)} • </span>
           }
-          <span className="capitalize">{order.paymentStatus}</span>
+          <span className="capitalize">{order.paymentStatus || 'pending'}</span>
         </div>
       </td>
 

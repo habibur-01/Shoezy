@@ -21,7 +21,7 @@ const MegaMenu = ({
 
   if (!isOpen || !category) return null;
 
-  const subcategories = category?.subcategories || [];
+  const subcategories = category?.subcategories || category?.subCategories || [];
 
   // Distribute subcategories into 3 or 4 columns with vertical dividers
   const renderColumns = () => {
@@ -30,7 +30,7 @@ const MegaMenu = ({
       return (
         <>
           {subcategories.map((sub) => (
-            <div key={sub._id} className="px-6 first:pl-0 last:pr-0">
+            <div key={sub._id || sub.id} className="px-6 first:pl-0 last:pr-0">
               {/* Subcategory Bold Uppercase Title */}
               <Link
                 to={`/products?category=${category.slug}&sub-category=${sub.slug}`}
@@ -147,7 +147,7 @@ const MegaMenu = ({
     return columns.map((colSubs, colIdx) => (
       <div key={colIdx} className="px-6 first:pl-0 last:pr-0 space-y-6">
         {colSubs.map((sub) => (
-          <div key={sub._id}>
+          <div key={sub._id || sub.id}>
             {/* Subcategory Bold Uppercase Title */}
             <Link
               to={`/products?category=${category.slug}&sub-category=${sub.slug}`}
@@ -161,7 +161,7 @@ const MegaMenu = ({
             {sub.childCategories && sub.childCategories.length > 0 ? (
               <ul className="space-y-1.5 pl-0.5">
                 {sub.childCategories.map((child) => (
-                  <li key={child._id}>
+                  <li key={child._id || child.id}>
                     <Link
                       to={`/products?category=${category.slug}&sub-category=${sub.slug}&child-category=${child.slug}`}
                       onClick={onClose}

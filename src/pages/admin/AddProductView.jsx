@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAdmin } from '../context/AdminContext';
-
 
 import { PublishBar } from './addProduct/PublishBar';
 import { BasicInfoSection } from './addProduct/BasicInfoSection';
@@ -14,14 +13,6 @@ import { ShippingSection } from './addProduct/ShippingSection';
 import { SeoSection } from './addProduct/SeoSection';
 import { ProductPreviewModal } from './addProduct/ProductPreviewModal';
 
-
-
-
-
-
-
-
-
 export const AddProductView = ({
   onBack,
   onNavigateToTaxonomy,
@@ -29,25 +20,41 @@ export const AddProductView = ({
   initialSubCategory,
   initialChildCategory
 }) => {
+  const navigate = useNavigate();
   const { categories, createProduct, hasPermission } = useAdmin();
 
   // Core product states
   const [title, setTitle] = useState('');
-  const [brand, setBrand] = useState('');
+  const [brand, setBrand] = useState('Shoezy');
   const [barcode, setBarcode] = useState('');
   const [description, setDescription] = useState('');
   const [tags, setTags] = useState(['new-arrival']);
 
   // Taxonomy states
   const [category, setCategory] = useState(
-    initialCategory || categories[0]?.name || 'Electronics'
+    initialCategory || categories[0]?.name || ''
   );
   const [subCategory, setSubCategory] = useState(
-    initialSubCategory || categories[0]?.subCategories?.[0]?.name || 'Audio & Headphones'
+    initialSubCategory || categories[0]?.subCategories?.[0]?.name || ''
   );
   const [childCategory, setChildCategory] = useState(
     initialChildCategory || categories[0]?.subCategories?.[0]?.childCategories?.[0]?.name || ''
   );
+
+  // Synchronize category taxonomy once categories finish loading
+  useEffect(() => {
+    if (!category && categories.length > 0) {
+      const firstCat = categories[0];
+      setCategory(firstCat.name);
+      if (firstCat.subCategories && firstCat.subCategories.length > 0) {
+        const firstSub = firstCat.subCategories[0];
+        setSubCategory(firstSub.name);
+        if (firstSub.childCategories && firstSub.childCategories.length > 0) {
+          setChildCategory(firstSub.childCategories[0].name);
+        }
+      }
+    }
+  }, [categories, category]);
 
   // Financials & Pricing
   const [price, setPrice] = useState(0);
@@ -56,13 +63,13 @@ export const AddProductView = ({
   const [isTaxable, setIsTaxable] = useState(true);
 
   // Stock & Inventory
-  const [sku, setSku] = useState('');
+  const [sku, setSku] = useState(`SKU-${Math.floor(100000 + Math.random() * 900000)}`);
   const [stock, setStock] = useState(25);
   const [lowStockThreshold, setLowStockThreshold] = useState(8);
 
   // Imagery & Gallery
   const [image, setImage] = useState(
-    'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&auto=format&fit=crop&q=80'
+    'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800&auto=format&fit=crop&q=80'
   );
   const [galleryImages, setGalleryImages] = useState([]);
 
@@ -85,7 +92,7 @@ export const AddProductView = ({
 
   const canPublish = hasPermission('products.create');
 
-  const handleSubmit = (saveAsDraft = false) => {
+  const handleSubmit = async (saveAsDraft = false) => {
     setValidationError(null);
 
     if (!title.trim()) {
@@ -98,7 +105,7 @@ export const AddProductView = ({
       return;
     }
 
-    if (price <= 0 && !saveAsDraft) {
+    if (Number(price) <= 0 && !saveAsDraft) {
       setValidationError('Selling price must be greater than $0.00 to publish.');
       return;
     }
@@ -110,33 +117,70 @@ export const AddProductView = ({
 
     setIsSubmitting(true);
 
-    const finalStatus = saveAsDraft ? 'draft' : status;
+    try {
+      const finalStatus = saveAsDraft ? 'draft' : status;
 
-    const success = createProduct({
-      title: title.trim(),
-      sku: sku.trim().toUpperCase(),
-      price: price || 0,
-      stock: stock || 0,
-      category,
-      subCategory: subCategory || undefined,
-      childCategory: childCategory || undefined,
-      status: finalStatus,
-      lowStockThreshold: lowStockThreshold || 5,
-      image: image.trim(),
-      brand: brand.trim() || undefined,
-      barcode: barcode.trim() || undefined,
-      description: description.trim() || undefined,
-      galleryImages: galleryImages.length > 0 ? galleryImages : undefined,
-      tags: tags.length > 0 ? tags : undefined,
-      weight: isPhysical ? weight : undefined,
-      dimensions: isPhysical ? { length, width, height } : undefined,
-      variants: hasVariants && variants.length > 0 ? variants : undefined
-    });
+      // Find matched category references to provide IDs and names
+      const selectedCatObj = categories.find(
+        (c) => c.name === category || c.id === category || c._id === category
+      );
+      const availableSubs =
+        selectedCatObj?.subCategories || selectedCatObj?.subcategories || [];
+      const selectedSubObj = availableSubs.find(
+        (s) => s.name === subCategory || s.id === subCategory || s._id === subCategory
+      );
+      const availableChildren =
+        selectedSubObj?.childCategories || selectedSubObj?.childcategories || [];
+      const selectedChildObj = availableChildren.find(
+        (ch) => ch.name === childCategory || ch.id === childCategory || ch._id === childCategory
+      );
 
-    setIsSubmitting(false);
+      const payload = {
+        title: title.trim(),
+        name: title.trim(),
+        sku: sku.trim().toUpperCase(),
+        price: Number(price) || 0,
+        discount_price: compareAtPrice ? Number(compareAtPrice) : undefined,
+        cost: Number(costPrice) || 0,
+        costPrice: Number(costPrice) || 0,
+        stock: Number(stock) || 0,
+        stock_quantity: Number(stock) || 0,
+        lowStockThreshold: Number(lowStockThreshold) || 8,
+        min_stock_alert: Number(lowStockThreshold) || 8,
+        category: selectedCatObj?._id || selectedCatObj?.id || category,
+        subcategory: selectedSubObj?._id || selectedSubObj?.id || subCategory || undefined,
+        subCategory: selectedSubObj?._id || selectedSubObj?.id || subCategory || undefined,
+        childCategory: selectedChildObj?._id || selectedChildObj?.id || childCategory || undefined,
+        status: finalStatus,
+        image: image.trim(),
+        images: {
+          cover: image.trim(),
+          gallery: galleryImages.length > 0 ? galleryImages : [],
+        },
+        brand: brand.trim() || 'Shoezy',
+        barcode: barcode.trim() || undefined,
+        description: description.trim() || undefined,
+        galleryImages: galleryImages.length > 0 ? galleryImages : undefined,
+        tags: tags.length > 0 ? tags : undefined,
+        weight: isPhysical ? Number(weight) : undefined,
+        dimensions: isPhysical ? { length: Number(length), width: Number(width), height: Number(height) } : undefined,
+        variants: hasVariants && variants.length > 0 ? variants : undefined,
+      };
 
-    if (success) {
-      onBack();
+      const created = await createProduct(payload);
+
+      if (created) {
+        if (onBack) {
+          onBack();
+        } else {
+          navigate('/admin/products');
+        }
+      }
+    } catch (err) {
+      console.error('Error in AddProduct submission:', err);
+      setValidationError(err?.message || 'Failed to submit product');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 

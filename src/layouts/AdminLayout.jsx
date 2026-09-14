@@ -9,6 +9,9 @@ import { useDispatch } from 'react-redux';
 import { clearAuth } from '../redux/features/auth/authSlice';
 import { toast } from 'react-toastify';
 
+import api from '../api/index';
+import { LOGOUT_ENDPOINT } from '../endpoint';
+
 const AdminLayoutInner = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -41,16 +44,20 @@ const AdminLayoutInner = () => {
     }
   };
 
-  const handleAdminLogout = () => {
-    localStorage.removeItem('shoezy_admin_token');
-    localStorage.removeItem('shoezy_admin_role');
-    dispatch(clearAuth());
-    toast.info('Admin session signed out successfully.');
-    navigate('/admin/login', { replace: true });
+  const handleAdminLogout = async () => {
+    try {
+      await api.post(LOGOUT_ENDPOINT);
+    } catch (err) {
+      console.warn('Backend logout error:', err);
+    } finally {
+      dispatch(clearAuth());
+      toast.info('Admin session signed out successfully.');
+      navigate('/admin/login', { replace: true });
+    }
   };
 
   return (
-    <div className="flex h-screen bg-zinc-100 dark:bg-zinc-950 font-sans text-zinc-900 dark:text-zinc-100 overflow-hidden">
+    <div className="flex h-screen h-[100dvh] bg-zinc-100 dark:bg-zinc-950 font-sans text-zinc-900 dark:text-zinc-100 overflow-hidden">
       {/* Desktop Sidebar */}
       <div className="hidden lg:flex shrink-0">
         <Sidebar activeTab={currentTab} setActiveTab={handleTabChange} />
@@ -82,8 +89,8 @@ const AdminLayoutInner = () => {
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* Top Header Bar with Mobile Menu Toggle & Storefront Quick-Link */}
-        <div className="sticky top-0 z-30 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800">
+        {/* Pinned Top Header Bar with Mobile Menu Toggle & Storefront Quick-Link */}
+        <header className="sticky top-0 z-30 shrink-0 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800 shadow-xs transition-colors">
           <div className="flex items-center">
             {/* Mobile hamburger button */}
             <button
@@ -124,10 +131,10 @@ const AdminLayoutInner = () => {
               </button>
             </div>
           </div>
-        </div>
+        </header>
 
         {/* Scrollable Viewport */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 overscroll-contain">
+        <main id="admin-main-viewport" className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 overscroll-contain">
           <div className="max-w-7xl mx-auto space-y-6">
             <Outlet context={{ activeTab: currentTab, setActiveTab: handleTabChange }} />
           </div>

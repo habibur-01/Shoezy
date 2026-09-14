@@ -140,53 +140,81 @@ export const CategoryModal = ({
           }
 
           {/* Parent Category Selector (If Subcategory or Child) */}
-          {(modalTier === 'subcategory' || modalTier === 'child') &&
-          <div>
+          {(modalTier === 'subcategory' || modalTier === 'child') && (
+            <div>
               <label className="block text-xs font-semibold text-zinc-700 mb-1">
                 Parent Master Category (Level 1) <span className="text-rose-500">*</span>
               </label>
-              <select
-              value={targetParentCatId}
-              onChange={(e) => {
-                const newCatId = e.target.value;
-                setTargetParentCatId(newCatId);
-                const cObj = categories.find((c) => c.id === newCatId);
-                setTargetParentSubCatId(cObj?.subCategories?.[0]?.id || '');
-              }}
-              disabled={modalMode === 'edit'}
-              className="w-full px-3 py-2 text-xs bg-zinc-50 border border-zinc-200 rounded-lg text-zinc-800 focus:outline-hidden focus:ring-2 focus:ring-zinc-900 disabled:opacity-60">
-              
-                {categories.map((c) =>
-              <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
+              {categories.length === 0 ? (
+                <div className="p-3 bg-rose-50 border border-rose-200 rounded-lg text-xs text-rose-700">
+                  ⚠️ No master category found! You must create a main category (e.g. Men, Women, Kids) first before you can add a subcategory or child category.
+                </div>
+              ) : (
+                <select
+                  value={targetParentCatId}
+                  required
+                  onChange={(e) => {
+                    const newCatId = e.target.value;
+                    setTargetParentCatId(newCatId);
+                    const cObj = categories.find((c) => c.id === newCatId || c._id === newCatId);
+                    const subs = cObj?.subCategories || cObj?.subcategories || [];
+                    setTargetParentSubCatId(subs[0]?.id || subs[0]?._id || '');
+                  }}
+                  disabled={modalMode === 'edit'}
+                  className="w-full px-3 py-2 text-xs bg-zinc-50 border border-zinc-200 rounded-lg text-zinc-800 focus:outline-hidden focus:ring-2 focus:ring-zinc-900 disabled:opacity-60"
+                >
+                  <option value="">-- Select Master Category (e.g. Men, Women, Kids) * --</option>
+                  {categories.map((c) => (
+                    <option key={c.id || c._id} value={c.id || c._id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
               )}
-              </select>
             </div>
-          }
+          )}
 
           {/* Parent Subcategory Selector (If Child) */}
-          {modalTier === 'child' &&
-          <div>
+          {modalTier === 'child' && (
+            <div>
               <label className="block text-xs font-semibold text-zinc-700 mb-1">
                 Parent Subcategory (Level 2) <span className="text-rose-500">*</span>
               </label>
-              <select
-              value={targetParentSubCatId}
-              onChange={(e) => setTargetParentSubCatId(e.target.value)}
-              disabled={modalMode === 'edit'}
-              className="w-full px-3 py-2 text-xs bg-zinc-50 border border-zinc-200 rounded-lg text-zinc-800 focus:outline-hidden focus:ring-2 focus:ring-zinc-900 disabled:opacity-60">
-              
-                {categories.
-              find((c) => c.id === targetParentCatId)?.
-              subCategories.map((s) =>
-              <option key={s.id} value={s.id}>
-                      {s.name}
-                    </option>
+              {!targetParentCatId ? (
+                <div className="p-2.5 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800">
+                  Please select a Master Category above first to see its available subcategories.
+                </div>
+              ) : (
+                (() => {
+                  const parentCat = categories.find((c) => c.id === targetParentCatId || c._id === targetParentCatId);
+                  const availableSubs = parentCat?.subCategories || parentCat?.subcategories || [];
+                  if (availableSubs.length === 0) {
+                    return (
+                      <div className="p-2.5 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800">
+                        ⚠️ No subcategories exist under &ldquo;{parentCat?.name}&rdquo; yet. Please add a subcategory (Level 2: e.g. Shoe, Apparel) first before adding a child category!
+                      </div>
+                    );
+                  }
+                  return (
+                    <select
+                      value={targetParentSubCatId}
+                      required
+                      onChange={(e) => setTargetParentSubCatId(e.target.value)}
+                      disabled={modalMode === 'edit'}
+                      className="w-full px-3 py-2 text-xs bg-zinc-50 border border-zinc-200 rounded-lg text-zinc-800 focus:outline-hidden focus:ring-2 focus:ring-zinc-900 disabled:opacity-60"
+                    >
+                      <option value="">-- Select Subcategory (e.g. Shoe, Apparel) * --</option>
+                      {availableSubs.map((s) => (
+                        <option key={s.id || s._id} value={s.id || s._id}>
+                          {s.name}
+                        </option>
+                      ))}
+                    </select>
+                  );
+                })()
               )}
-              </select>
             </div>
-          }
+          )}
 
           {/* Name & Slug */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -309,8 +337,13 @@ export const CategoryModal = ({
             </button>
             <button
               type="submit"
-              className="px-4 py-2 text-xs font-medium text-white bg-zinc-900 hover:bg-zinc-800 rounded-lg shadow-xs transition-colors cursor-pointer">
-              
+              disabled={
+                modalMode === 'create' && (
+                  (modalTier === 'subcategory' && (!targetParentCatId || categories.length === 0)) ||
+                  (modalTier === 'child' && (!targetParentCatId || !targetParentSubCatId))
+                )
+              }
+              className="px-4 py-2 text-xs font-medium text-white bg-zinc-900 hover:bg-zinc-800 rounded-lg shadow-xs transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
               {modalMode === 'create' ? 'Create Node' : 'Save Changes'}
             </button>
           </div>

@@ -201,7 +201,7 @@ const Navbar = () => {
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-[var(--color-background)] border-b border-stone-200/60 shadow-xs relative">
+    <header className="sticky top-0 z-40 bg-[var(--color-background)] border-b border-stone-200/60 shadow-xs">
       <div className="hidden lg:flex w-full h-24 bg-[var(--color-background)] py-3 px-8 lg:px-20 justify-between items-center relative z-40">
       {/* Left section */}
       <div>
@@ -217,7 +217,9 @@ const Navbar = () => {
 
           {categories.length > 0 &&
             categories.map((navItem) => {
-              const isActiveInMenu = activeCategory?._id === navItem?._id && isMegaMenuOpen;
+              const navId = navItem?._id || navItem?.id;
+              const activeId = activeCategory?._id || activeCategory?.id;
+              const isActiveInMenu = Boolean(activeId && navId && activeId === navId && isMegaMenuOpen);
               const isCurrentUrlCategory =
                 (location.pathname === "/products" &&
                   new URLSearchParams(location.search).get("category") === navItem.slug) ||
@@ -227,7 +229,7 @@ const Navbar = () => {
 
               return (
                 <li
-                  key={navItem?._id}
+                  key={navId}
                   className="relative flex items-center py-4"
                   onMouseEnter={() => handleCategoryMouseEnter(navItem)}
                   onMouseLeave={handleCategoryMouseLeave}

@@ -62,58 +62,58 @@ export const DashboardView = ({
     fetchDashboard(chartRange);
   }, [chartRange, fetchDashboard]);
 
-  // Default fallback chart dataset if API is loading or unavailable
-  const fallbackChartData = {
+  // Clean zero-baseline chart dataset if no transactions exist yet
+  const emptyChartData = {
     'Today': [
-      { label: '12 AM', revenue: 810, orders: 5 },
-      { label: '4 AM', revenue: 1450, orders: 8 },
-      { label: '8 AM', revenue: 3200, orders: 16 },
-      { label: '12 PM', revenue: 5600, orders: 28 },
-      { label: '4 PM', revenue: 3800, orders: 19 },
-      { label: '8 PM', revenue: 4900, orders: 24 },
-      { label: '11 PM', revenue: 1200, orders: 7 },
+      { label: '12 AM', revenue: 0, orders: 0 },
+      { label: '4 AM', revenue: 0, orders: 0 },
+      { label: '8 AM', revenue: 0, orders: 0 },
+      { label: '12 PM', revenue: 0, orders: 0 },
+      { label: '4 PM', revenue: 0, orders: 0 },
+      { label: '8 PM', revenue: 0, orders: 0 },
+      { label: '11 PM', revenue: 0, orders: 0 },
     ],
     'This Week': [
-      { label: 'Sun', revenue: 7280, orders: 27 },
-      { label: 'Mon', revenue: 5909, orders: 25 },
-      { label: 'Tue', revenue: 4591, orders: 20 },
-      { label: 'Wed', revenue: 1258, orders: 6 },
-      { label: 'Thu', revenue: 3248, orders: 13 },
-      { label: 'Fri', revenue: 1304, orders: 7 },
-      { label: 'Sat', revenue: 9158, orders: 49 },
+      { label: 'Sun', revenue: 0, orders: 0 },
+      { label: 'Mon', revenue: 0, orders: 0 },
+      { label: 'Tue', revenue: 0, orders: 0 },
+      { label: 'Wed', revenue: 0, orders: 0 },
+      { label: 'Thu', revenue: 0, orders: 0 },
+      { label: 'Fri', revenue: 0, orders: 0 },
+      { label: 'Sat', revenue: 0, orders: 0 },
     ],
     '7D': [
-      { label: 'Mon', revenue: 420, orders: 4 },
-      { label: 'Tue', revenue: 680, orders: 6 },
-      { label: 'Wed', revenue: 310, orders: 3 },
-      { label: 'Thu', revenue: 890, orders: 8 },
-      { label: 'Fri', revenue: 1140, orders: 11 },
-      { label: 'Sat', revenue: 1420, orders: 15 },
-      { label: 'Sun', revenue: 980, orders: 9 },
+      { label: 'Mon', revenue: 0, orders: 0 },
+      { label: 'Tue', revenue: 0, orders: 0 },
+      { label: 'Wed', revenue: 0, orders: 0 },
+      { label: 'Thu', revenue: 0, orders: 0 },
+      { label: 'Fri', revenue: 0, orders: 0 },
+      { label: 'Sat', revenue: 0, orders: 0 },
+      { label: 'Sun', revenue: 0, orders: 0 },
     ],
     'This Month': [
-      { label: 'W1', revenue: 4800, orders: 42 },
-      { label: 'W2', revenue: 6200, orders: 58 },
-      { label: 'W3', revenue: 5900, orders: 51 },
-      { label: 'W4', revenue: 7800, orders: 74 },
+      { label: 'W1', revenue: 0, orders: 0 },
+      { label: 'W2', revenue: 0, orders: 0 },
+      { label: 'W3', revenue: 0, orders: 0 },
+      { label: 'W4', revenue: 0, orders: 0 },
     ],
     '30D': [
-      { label: 'W1', revenue: 4800, orders: 42 },
-      { label: 'W2', revenue: 6200, orders: 58 },
-      { label: 'W3', revenue: 5900, orders: 51 },
-      { label: 'W4', revenue: 7800, orders: 74 },
+      { label: 'W1', revenue: 0, orders: 0 },
+      { label: 'W2', revenue: 0, orders: 0 },
+      { label: 'W3', revenue: 0, orders: 0 },
+      { label: 'W4', revenue: 0, orders: 0 },
     ],
     '90D': [
-      { label: 'Jul', revenue: 21500, orders: 198 },
-      { label: 'Aug', revenue: 26800, orders: 245 },
-      { label: 'Sep', revenue: 31200, orders: 289 },
+      { label: 'Month 1', revenue: 0, orders: 0 },
+      { label: 'Month 2', revenue: 0, orders: 0 },
+      { label: 'Month 3', revenue: 0, orders: 0 },
     ],
   }[chartRange] || [];
 
   const activeChartData =
     dashboardData?.revenueTrend?.chartData && dashboardData.revenueTrend.chartData.length > 0
       ? dashboardData.revenueTrend.chartData
-      : fallbackChartData;
+      : emptyChartData;
 
   const maxRevenue = Math.max(...activeChartData.map((d) => Number(d.revenue) || 0), 100);
 

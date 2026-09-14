@@ -48,6 +48,20 @@ export const OrderDetailModal = ({
 
   const carriers = ['FedEx Express', 'UPS Ground', 'DHL Express', 'USPS Priority', 'Royal Mail'];
 
+  const lastModName =
+    order.lastActivity?.actorName ||
+    order.updatedByName ||
+    order.updatedBy?.name ||
+    order.confirmedByName ||
+    order.confirmedBy?.name;
+
+  const confirmedName = order.confirmedByName || order.confirmedBy?.name;
+
+  // Build complete activities list (newest first)
+  const activityList = Array.isArray(order.activities) && order.activities.length > 0
+    ? order.activities
+    : (Array.isArray(order.timeline) ? [...order.timeline].reverse() : []);
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/60 backdrop-blur-xs animate-in fade-in duration-200">
       <div className="relative w-full max-w-2xl bg-white border border-zinc-200 rounded-xl shadow-2xl p-6 overflow-y-auto max-h-[92vh]">
@@ -60,21 +74,61 @@ export const OrderDetailModal = ({
                 className={`px-2 py-0.5 rounded text-[10px] font-semibold uppercase border ${getStatusBadge(
                   order.status
                 )}`}>
-                
                 {order.status}
               </span>
             </div>
-            <p className="text-xs text-zinc-500 mt-0.5">
-              Placed on {new Date(order.createdAt).toLocaleString()}
-            </p>
+            <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-zinc-500 mt-0.5">
+              <span>Placed on {new Date(order.createdAt).toLocaleString()}</span>
+              {confirmedName && (
+                <span className="inline-flex items-center gap-1 text-[11px] text-amber-900 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200/70 font-medium">
+                  Confirmed by: {confirmedName}
+                </span>
+              )}
+              {lastModName && (
+                <span className="inline-flex items-center gap-1 text-[11px] text-blue-900 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200/70 font-medium">
+                  Last edited by: {lastModName}
+                </span>
+              )}
+            </div>
           </div>
           <button
             onClick={onClose}
             className="p-1 text-zinc-400 hover:text-zinc-600 rounded-md cursor-pointer">
-            
             <X className="w-5 h-5" />
           </button>
         </div>
+
+        {/* Last Activity Summary Banner */}
+        {order.lastActivity && (
+          <div className="mb-4 p-3 bg-zinc-50 border border-zinc-200/90 rounded-xl text-xs space-y-1">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5 font-semibold text-zinc-900">
+                <Clock className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                <span>Last Activity:</span>
+                <span className="text-indigo-700 font-bold uppercase text-[11px]">
+                  {order.lastActivity.action?.replace(/_/g, ' ') || 'STATUS_UPDATED'}
+                </span>
+                <span className="text-zinc-500 font-normal">
+                  by <span className="font-medium text-zinc-800">{order.lastActivity.actorName || 'Operations Admin'}</span>
+                  {order.lastActivity.actorRole && ` (${order.lastActivity.actorRole})`}
+                </span>
+              </div>
+              <span className="text-[10px] text-zinc-400 font-mono shrink-0">
+                {new Date(order.lastActivity.timestamp || Date.now()).toLocaleTimeString([], {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  month: 'short',
+                  day: 'numeric',
+                })}
+              </span>
+            </div>
+            <div className="text-zinc-600 text-[11px] pl-5">
+              {order.lastActivity.note || `Transitioned status to ${order.lastActivity.newStatus || order.status}`}
+              {order.lastActivity.carrier && ` • Carrier: ${order.lastActivity.carrier}`}
+              {order.lastActivity.trackingNumber && ` (Tracking: ${order.lastActivity.trackingNumber})`}
+            </div>
+          </div>
+        )}
 
         {/* Stepper Pipeline */}
         <div className="mb-6 p-4 bg-zinc-50 rounded-xl border border-zinc-200">
@@ -120,31 +174,31 @@ export const OrderDetailModal = ({
           {/* Order Items */}
           <div className="p-3 bg-zinc-50/70 border border-zinc-200 rounded-lg text-xs space-y-2">
             <div className="font-semibold text-zinc-900">Purchased Items</div>
-            {order.items.map((item, idx) =>
+            {(order.items || []).map((item, idx) =>
             <div
               key={idx}
               className="flex items-center justify-between py-1 border-b border-zinc-200/60 last:border-0">
               
                 <div>
-                  <div className="font-medium text-zinc-900">{item.title}</div>
+                  <div className="font-medium text-zinc-900">{item.title || item.name || 'Product'}</div>
                   <div className="text-[10px] text-zinc-400 font-mono">
-                    {item.sku} • Qty: {item.quantity}
+                    {item.sku || 'SHZ-PRD'} • Qty: {item.quantity || 1}
                   </div>
                 </div>
                 <div className="font-mono font-semibold">
-                  ${(item.price * item.quantity).toFixed(2)}
+                  ${Number((item.price || 0) * (item.quantity || 1)).toFixed(2)}
                 </div>
               </div>
             )}
 
             <div className="pt-2 border-t border-zinc-200 text-right space-y-1">
-              <div className="text-zinc-500">Subtotal: ${order.subtotal.toFixed(2)}</div>
-              {order.discount > 0 &&
+              <div className="text-zinc-500">Subtotal: ${Number(order.subtotal ?? order.total ?? 0).toFixed(2)}</div>
+              {Number(order.discount || 0) > 0 &&
               <div className="text-emerald-700 font-medium">
-                  Promo ({order.couponCode || 'Discount'}): -${order.discount.toFixed(2)}
+                  Promo ({order.couponCode || 'Discount'}): -${Number(order.discount).toFixed(2)}
                 </div>
               }
-              <div className="text-sm font-bold text-zinc-900">Total: ${order.total.toFixed(2)}</div>
+              <div className="text-sm font-bold text-zinc-900">Total: ${Number(order.total ?? order.totalAmount ?? 0).toFixed(2)}</div>
             </div>
           </div>
 
@@ -154,19 +208,19 @@ export const OrderDetailModal = ({
             <div className="space-y-1 text-zinc-600">
               <div className="flex items-center gap-1.5 font-medium text-zinc-900">
                 <User className="w-3.5 h-3.5 text-zinc-400" />
-                {order.customerName}
+                {order.customerName || 'Customer'}
               </div>
-              <div className="text-zinc-500">{order.customerEmail}</div>
+              <div className="text-zinc-500">{order.customerEmail || ''}</div>
               {order.customerPhone && <div className="text-zinc-500">{order.customerPhone}</div>}
               <div className="flex items-start gap-1.5 pt-1 text-zinc-700">
                 <MapPin className="w-3.5 h-3.5 text-zinc-400 mt-0.5" />
                 <div>
-                  <div>{order.shippingAddress.street}</div>
+                  <div>{order.shippingAddress?.street || order.shipping?.street || order.shipping?.address || 'Address on file'}</div>
                   <div>
-                    {order.shippingAddress.city}, {order.shippingAddress.state}{' '}
-                    {order.shippingAddress.postalCode}
+                    {order.shippingAddress?.city || order.shipping?.city || 'N/A'}{order.shippingAddress?.state || order.shipping?.state ? `, ${order.shippingAddress?.state || order.shipping?.state}` : ''}{' '}
+                    {order.shippingAddress?.postalCode || order.shipping?.postal_code || ''}
                   </div>
-                  <div className="text-zinc-500">{order.shippingAddress.country}</div>
+                  <div className="text-zinc-500">{order.shippingAddress?.country || order.shipping?.country || 'Bangladesh'}</div>
                 </div>
               </div>
             </div>
@@ -254,31 +308,84 @@ export const OrderDetailModal = ({
           </div>
         </div>
 
-        {/* Audit Timeline */}
+        {/* Administrative Activities & Audit History List */}
         <div className="mb-6">
-          <div className="text-xs font-semibold text-zinc-900 mb-2">Order Activity History</div>
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-xs font-semibold text-zinc-900 flex items-center gap-1.5">
+              <Clock className="w-3.5 h-3.5 text-zinc-500" />
+              <span>Administrative Activities & Order History List</span>
+            </div>
+            <span className="text-[10px] text-zinc-400 font-medium">
+              {activityList.length} recorded {activityList.length === 1 ? 'activity' : 'activities'}
+            </span>
+          </div>
+
           <div className="space-y-2 text-xs">
-            {order.timeline.map((step, idx) =>
-            <div
-              key={idx}
-              className="flex items-start gap-2.5 p-2 rounded bg-zinc-50 border border-zinc-100">
-              
-                <Clock className="w-3.5 h-3.5 text-zinc-400 mt-0.5 shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
-                    <span className="font-semibold text-zinc-800 uppercase text-[10px]">
-                      {step.status}
-                    </span>
-                    <span className="text-[10px] text-zinc-400">
-                      {new Date(step.timestamp).toLocaleString()}
-                    </span>
+            {activityList.map((step, idx) => {
+              const actorName =
+                step.actorName ||
+                step.actor ||
+                (step.adminUser?.name || (step.adminUser?.firstName ? `${step.adminUser.firstName} ${step.adminUser.lastName || ''}`.trim() : null)) ||
+                'Operations Staff';
+              const actorRole =
+                step.actorRole ||
+                step.adminUser?.role ||
+                (idx === activityList.length - 1 ? 'Customer' : 'Staff');
+              const actionText = step.action
+                ? step.action.replace(/_/g, ' ')
+                : (step.status ? step.status.toUpperCase() : 'ACTIVITY');
+              const timeStr = new Date(step.timestamp || step.date || Date.now()).toLocaleString([], {
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+              });
+
+              return (
+                <div
+                  key={idx}
+                  className="flex items-start gap-2.5 p-2.5 rounded-lg bg-zinc-50 border border-zinc-100 hover:border-zinc-200 transition-colors">
+                  <div className="w-6 h-6 rounded-full bg-white border border-zinc-200 text-zinc-600 flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
+                    <User className="w-3 h-3 text-zinc-500" />
                   </div>
-                  <div className="text-zinc-600 text-[11px] mt-0.5">
-                    {step.note || `Transitioned by ${step.actor}`}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center justify-between gap-1">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-semibold text-zinc-900 text-xs">
+                          {actorName}
+                        </span>
+                        {actorRole && (
+                          <span className="px-1.5 py-0.2 bg-zinc-200/80 text-zinc-700 rounded text-[9px] font-medium uppercase">
+                            {actorRole}
+                          </span>
+                        )}
+                        <span className="px-1.5 py-0.2 bg-indigo-50 text-indigo-700 rounded text-[9px] font-semibold uppercase border border-indigo-100">
+                          {actionText}
+                        </span>
+                      </div>
+                      <span className="text-[10px] text-zinc-400 font-mono">
+                        {timeStr}
+                      </span>
+                    </div>
+                    <div className="text-zinc-600 text-[11px] mt-1">
+                      {step.notes || step.note || step.description || `Executed activity by ${actorName}`}
+                    </div>
+                    {(step.carrier || step.trackingNumber) && (
+                      <div className="mt-1 flex items-center gap-2 text-[10px] text-zinc-500">
+                        {step.carrier && (
+                          <span className="font-medium text-zinc-700">Carrier: {step.carrier}</span>
+                        )}
+                        {step.trackingNumber && (
+                          <span className="font-mono bg-zinc-100 px-1 py-0.5 rounded text-zinc-700">
+                            Code: {step.trackingNumber}
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
-              </div>
-            )}
+              );
+            })}
           </div>
         </div>
 
@@ -300,7 +407,7 @@ export const OrderDetailModal = ({
                   Confirm Order Cancellation & Monetary Refund
                 </div>
                 <p className="text-rose-700">
-                  This will revoke the order, refund ${order.total.toFixed(2)}, and record an audit
+                  This will revoke the order, refund ${Number(order.total ?? order.totalAmount ?? 0).toFixed(2)}, and record an audit
                   log entry.
                 </p>
                 <input

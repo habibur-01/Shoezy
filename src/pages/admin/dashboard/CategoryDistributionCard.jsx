@@ -6,18 +6,13 @@ export const CategoryDistributionCard = ({
   orderStatusData,
   onNavigateCategories,
 }) => {
-  const categories = categoryData?.categories || [
-    { name: 'Running Shoes', percentage: 40, ordersCount: 86, revenue: 14190, color: '#f97316' },
-    { name: 'Sneakers', percentage: 31, ordersCount: 68, revenue: 14110, color: '#eab308' },
-    { name: 'Accessories', percentage: 15, ordersCount: 33, revenue: 792, color: '#10b981' },
-    { name: 'Basketball', percentage: 12, ordersCount: 26, revenue: 3380, color: '#8b5cf6' },
-  ];
+  const categories = categoryData?.categories || [];
 
   const distribution = orderStatusData?.distribution || {
-    completed: { count: 82, percentage: 48, label: 'Completed', color: '#10b981' },
-    preparing: { count: 47, percentage: 27, label: 'In Transit', color: '#f59e0b' },
-    pending: { count: 18, percentage: 10, label: 'Pending', color: '#f97316' },
-    cancelled: { count: 25, percentage: 15, label: 'Cancelled', color: '#ef4444' },
+    completed: { count: 0, percentage: 0, label: 'Completed', color: '#10b981' },
+    preparing: { count: 0, percentage: 0, label: 'In Transit', color: '#f59e0b' },
+    pending: { count: 0, percentage: 0, label: 'Pending', color: '#f97316' },
+    cancelled: { count: 0, percentage: 0, label: 'Cancelled', color: '#ef4444' },
   };
 
   return (
@@ -53,29 +48,35 @@ export const CategoryDistributionCard = ({
             <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider block mb-3">
               Volume by Product Line
             </span>
-            <div className="space-y-3">
-              {categories.slice(0, 4).map((cat, idx) => (
-                <div key={idx} className="space-y-1">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-semibold text-zinc-800 dark:text-zinc-200">
-                      {cat.name}
-                    </span>
-                    <span className="font-mono text-zinc-500 text-[11px]">
-                      {cat.ordersCount} units • {cat.percentage}%
-                    </span>
+            {categories.length === 0 ? (
+              <div className="py-8 text-center text-zinc-400 text-xs">
+                No category sales recorded yet.
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {categories.slice(0, 4).map((cat, idx) => (
+                  <div key={idx} className="space-y-1">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-semibold text-zinc-800 dark:text-zinc-200">
+                        {cat.name}
+                      </span>
+                      <span className="font-mono text-zinc-500 text-[11px]">
+                        {cat.ordersCount || 0} units • {cat.percentage || 0}%
+                      </span>
+                    </div>
+                    <div className="h-2 w-full bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all duration-500"
+                        style={{
+                          width: `${Math.min(100, Math.max(0, cat.percentage || 0))}%`,
+                          backgroundColor: cat.color || '#6366f1',
+                        }}
+                      />
+                    </div>
                   </div>
-                  <div className="h-2 w-full bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
-                    <div
-                      className="h-full rounded-full transition-all duration-500"
-                      style={{
-                        width: `${Math.min(100, Math.max(8, cat.percentage))}%`,
-                        backgroundColor: cat.color || '#6366f1',
-                      }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Fulfillment Pipeline Progress */}
@@ -90,7 +91,7 @@ export const CategoryDistributionCard = ({
                   <span>Delivered</span>
                 </div>
                 <div className="text-lg font-bold text-zinc-900 dark:text-zinc-100 font-mono">
-                  {distribution.completed?.percentage || 48}%
+                  {distribution.completed?.percentage || 0}%
                 </div>
                 <div className="text-[10px] text-zinc-400">
                   {distribution.completed?.count || 0} orders
@@ -103,7 +104,7 @@ export const CategoryDistributionCard = ({
                   <span>In Transit</span>
                 </div>
                 <div className="text-lg font-bold text-zinc-900 dark:text-zinc-100 font-mono">
-                  {distribution.preparing?.percentage || 27}%
+                  {distribution.preparing?.percentage || 0}%
                 </div>
                 <div className="text-[10px] text-zinc-400">
                   {distribution.preparing?.count || 0} orders
@@ -116,7 +117,7 @@ export const CategoryDistributionCard = ({
                   <span>Pending</span>
                 </div>
                 <div className="text-lg font-bold text-zinc-900 dark:text-zinc-100 font-mono">
-                  {distribution.pending?.percentage || 10}%
+                  {distribution.pending?.percentage || 0}%
                 </div>
                 <div className="text-[10px] text-zinc-400">
                   {distribution.pending?.count || 0} orders
@@ -129,7 +130,7 @@ export const CategoryDistributionCard = ({
                   <span>Cancelled</span>
                 </div>
                 <div className="text-lg font-bold text-zinc-900 dark:text-zinc-100 font-mono">
-                  {distribution.cancelled?.percentage || 15}%
+                  {distribution.cancelled?.percentage || 0}%
                 </div>
                 <div className="text-[10px] text-zinc-400">
                   {distribution.cancelled?.count || 0} orders

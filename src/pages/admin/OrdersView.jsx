@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAdmin } from '../context/AdminContext';
 
 import { OrdersHeader } from './orders/OrdersHeader';
@@ -7,11 +7,23 @@ import { OrdersTable } from './orders/OrdersTable';
 import { OrderDetailModal } from './orders/OrderDetailModal';
 
 export const OrdersView = () => {
-  const { orders, updateOrderStatus, cancelAndRefundOrder, assertPermission } = useAdmin();
+  const { orders, updateOrderStatus, cancelAndRefundOrder, assertPermission, currentUser, currentRole } = useAdmin();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedOrder, setSelectedOrder] = useState(null);
+
+  // Sync selectedOrder when orders list updates in context
+  useEffect(() => {
+    if (selectedOrder) {
+      const updated = orders.find(
+        (o) => o.id === selectedOrder.id || o._id === selectedOrder.id || o.id === selectedOrder._id || o._id === selectedOrder._id
+      );
+      if (updated) {
+        setSelectedOrder(updated);
+      }
+    }
+  }, [orders]);
 
   // Tracking modal inputs
   const [carrier, setCarrier] = useState('FedEx Express');
@@ -21,11 +33,18 @@ export const OrdersView = () => {
   const [showRefundConfirm, setShowRefundConfirm] = useState(false);
 
   const filteredOrders = orders.filter((order) => {
+    const q = searchQuery.toLowerCase().trim();
+    const orderId = String(order.id || order._id || order.orderNumber || '').toLowerCase();
+    const customerName = String(order.customerName || '').toLowerCase();
+    const customerEmail = String(order.customerEmail || '').toLowerCase();
+    const tracking = String(order.trackingNumber || '').toLowerCase();
+
     const matchesSearch =
-    order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    order.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    order.customerEmail.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    order.trackingNumber && order.trackingNumber.toLowerCase().includes(searchQuery.toLowerCase());
+      !q ||
+      orderId.includes(q) ||
+      customerName.includes(q) ||
+      customerEmail.includes(q) ||
+      tracking.includes(q);
 
     const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
     return matchesSearch && matchesStatus;
@@ -39,9 +58,12 @@ export const OrdersView = () => {
     setShowRefundConfirm(false);
   };
 
-  const handleAdvanceStatus = (newStatus) => {
+  const handleAdvanceStatus = async (newStatus) => {
     if (!selectedOrder) return;
-    const success = updateOrderStatus(
+    const actorName = currentUser?.name || 'Administrator';
+    const actorRole = currentRole?.name || currentUser?.role || 'Admin';
+
+    const success = await updateOrderStatus(
       selectedOrder.id,
       newStatus,
       carrier,
@@ -50,53 +72,114 @@ export const OrdersView = () => {
     );
 
     if (success) {
-      setSelectedOrder((prev) =>
-      prev ?
-      {
-        ...prev,
+      const nowIso = new Date().toISOString();
+      const newStep = {
         status: newStatus,
+        timestamp: nowIso,
+        actor: actorName,
+        actorName,
+        actorRole,
         carrier,
         trackingNumber,
-        timeline: [
-        ...prev.timeline,
-        {
-          status: newStatus,
-          timestamp: new Date().toISOString(),
-          actor: 'Operations Admin',
-          note: updateNote || `Status updated to ${newStatus}`
-        }]
+        note: updateNote || `Status updated to ${newStatus}`,
+      };
 
-      } :
-      null
+      const newAct = {
+        id: `act-${Date.now()}`,
+        _id: `act-${Date.now()}`,
+        action: newStatus === 'processing' ? 'ORDER_CONFIRMED' : 'STATUS_UPDATED',
+        previousStatus: selectedOrder.status,
+        newStatus,
+        carrier,
+        trackingNumber,
+        notes: updateNote || `Status updated to ${newStatus}`,
+        timestamp: nowIso,
+        actorName,
+        actorRole,
+      };
+
+      setSelectedOrder((prev) =>
+        prev
+          ? {
+              ...prev,
+              status: newStatus,
+              carrier,
+              trackingNumber,
+              updatedByName: actorName,
+              confirmedByName: (newStatus === 'processing' && !prev.confirmedByName) ? actorName : prev.confirmedByName,
+              lastActivity: {
+                actorName,
+                actorRole,
+                action: newStatus === 'processing' ? 'ORDER_CONFIRMED' : 'STATUS_UPDATED',
+                previousStatus: prev.status,
+                newStatus,
+                carrier,
+                trackingNumber,
+                note: updateNote || `Status updated to ${newStatus}`,
+                timestamp: nowIso,
+              },
+              activities: [newAct, ...(prev.activities || [])],
+              timeline: [...(prev.timeline || []), newStep],
+            }
+          : null
       );
       setUpdateNote('');
     }
   };
 
-  const handleProcessRefund = () => {
+  const handleProcessRefund = async () => {
     if (!selectedOrder) return;
-    const success = cancelAndRefundOrder(
+    const actorName = currentUser?.name || 'Administrator';
+    const actorRole = currentRole?.name || currentUser?.role || 'Admin';
+
+    const success = await cancelAndRefundOrder(
       selectedOrder.id,
       refundReason || 'Customer requested return/cancellation'
     );
     if (success) {
-      setSelectedOrder((prev) =>
-      prev ?
-      {
-        ...prev,
-        status: 'cancelled',
-        paymentStatus: 'refunded',
-        timeline: [
-        ...prev.timeline,
-        {
-          status: 'cancelled',
-          timestamp: new Date().toISOString(),
-          actor: 'Operations Admin',
-          note: `Refunded: ${refundReason || 'Order cancelled and refunded'}`
-        }]
+      const nowIso = new Date().toISOString();
+      const newAct = {
+        id: `act-${Date.now()}`,
+        _id: `act-${Date.now()}`,
+        action: 'ORDER_CANCELLED',
+        previousStatus: selectedOrder.status,
+        newStatus: 'cancelled',
+        notes: refundReason || 'Order cancelled and refunded',
+        timestamp: nowIso,
+        actorName,
+        actorRole,
+      };
 
-      } :
-      null
+      setSelectedOrder((prev) =>
+        prev
+          ? {
+              ...prev,
+              status: 'cancelled',
+              paymentStatus: 'refunded',
+              updatedByName: actorName,
+              lastActivity: {
+                actorName,
+                actorRole,
+                action: 'ORDER_CANCELLED',
+                previousStatus: prev.status,
+                newStatus: 'cancelled',
+                note: refundReason || 'Order cancelled and refunded',
+                timestamp: nowIso,
+              },
+              activities: [newAct, ...(prev.activities || [])],
+              timeline: [
+                ...(prev.timeline || []),
+                {
+                  status: 'cancelled',
+                  timestamp: nowIso,
+                  actor: actorName,
+                  actorName,
+                  actorRole,
+                  note: `Refunded: ${refundReason || 'Order cancelled and refunded'}`,
+                },
+              ],
+            }
+          : null
       );
       setShowRefundConfirm(false);
       setRefundReason('');

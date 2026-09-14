@@ -194,86 +194,92 @@ const MobileNavbar = ({
 
                   {/* Categories Accordion */}
                   {categories.length > 0 &&
-                    categories.map((cat) => (
-                      <li key={cat._id} className="space-y-1">
-                        <div className="flex items-center justify-between px-4 py-2.5 rounded-xl hover:bg-stone-100 transition">
-                          <Link
-                            to={`/products?category=${cat.slug}`}
-                            onClick={() => setMobileMenuOpen(false)}
-                            className="font-bold text-sm text-stone-800 capitalize flex-1"
-                          >
-                            {cat.name}
-                          </Link>
-
-                          {cat?.subcategories?.length > 0 && (
-                            <button
-                              onClick={() => toggleCategoryExpand(cat._id)}
-                              className="p-1 text-stone-500 hover:text-black cursor-pointer"
+                    categories.map((cat) => {
+                      const catId = cat._id || cat.id;
+                      const subList = cat.subcategories || cat.subCategories || [];
+                      return (
+                        <li key={catId} className="space-y-1">
+                          <div className="flex items-center justify-between px-4 py-2.5 rounded-xl hover:bg-stone-100 transition">
+                            <Link
+                              to={`/products?category=${cat.slug}`}
+                              onClick={() => setMobileMenuOpen(false)}
+                              className="font-bold text-sm text-stone-800 capitalize flex-1"
                             >
-                              {expandedCategories[cat._id] ? (
-                                <ChevronDown className="w-4 h-4" />
-                              ) : (
-                                <ChevronRight className="w-4 h-4" />
-                              )}
-                            </button>
-                          )}
-                        </div>
+                              {cat.name}
+                            </Link>
 
-                        {/* Subcategories */}
-                        {cat?.subcategories?.length > 0 && expandedCategories[cat._id] && (
-                          <ul className="pl-4 space-y-1 border-l-2 border-stone-200 ml-4 py-1">
-                            {cat.subcategories.map((sub) => {
-                              const hasChildren = (sub.childCategories || []).length > 0;
-                              const isSubExpanded = expandedSubCategories[sub._id];
+                            {subList.length > 0 && (
+                              <button
+                                onClick={() => toggleCategoryExpand(catId)}
+                                className="p-1 text-stone-500 hover:text-black cursor-pointer"
+                              >
+                                {expandedCategories[catId] ? (
+                                  <ChevronDown className="w-4 h-4" />
+                                ) : (
+                                  <ChevronRight className="w-4 h-4" />
+                                )}
+                              </button>
+                            )}
+                          </div>
 
-                              return (
-                                <li key={sub._id} className="space-y-1">
-                                  <div className="flex items-center justify-between px-3 py-1.5 rounded-lg hover:bg-stone-100 transition">
-                                    <Link
-                                      to={`/products?category=${cat.slug}&sub-category=${sub.slug}`}
-                                      onClick={() => setMobileMenuOpen(false)}
-                                      className="text-xs font-semibold text-stone-700 hover:text-black block capitalize flex-1"
-                                    >
-                                      {sub.name}
-                                    </Link>
+                          {/* Subcategories */}
+                          {subList.length > 0 && expandedCategories[catId] && (
+                            <ul className="pl-4 space-y-1 border-l-2 border-stone-200 ml-4 py-1">
+                              {subList.map((sub) => {
+                                const subId = sub._id || sub.id;
+                                const childList = sub.childCategories || sub.childcategories || [];
+                                const hasChildren = childList.length > 0;
+                                const isSubExpanded = expandedSubCategories[subId];
 
-                                    {hasChildren && (
-                                      <button
-                                        onClick={() => toggleSubCategoryExpand(sub._id)}
-                                        className="p-1 text-stone-400 hover:text-black cursor-pointer"
+                                return (
+                                  <li key={subId} className="space-y-1">
+                                    <div className="flex items-center justify-between px-3 py-1.5 rounded-lg hover:bg-stone-100 transition">
+                                      <Link
+                                        to={`/products?category=${cat.slug}&sub-category=${sub.slug}`}
+                                        onClick={() => setMobileMenuOpen(false)}
+                                        className="text-xs font-semibold text-stone-700 hover:text-black block capitalize flex-1"
                                       >
-                                        {isSubExpanded ? (
-                                          <ChevronDown className="w-3.5 h-3.5" />
-                                        ) : (
-                                          <ChevronRight className="w-3.5 h-3.5" />
-                                        )}
-                                      </button>
-                                    )}
-                                  </div>
+                                        {sub.name}
+                                      </Link>
 
-                                  {/* Child Categories */}
-                                  {hasChildren && isSubExpanded && (
-                                    <ul className="pl-4 space-y-1 border-l border-stone-200 ml-3 py-1">
-                                      {sub.childCategories.map((child) => (
-                                        <li key={child._id}>
-                                          <Link
-                                            to={`/products?category=${cat.slug}&sub-category=${sub.slug}&child-category=${child.slug}`}
-                                            onClick={() => setMobileMenuOpen(false)}
-                                            className="px-2.5 py-1 rounded text-[11px] font-normal text-stone-500 hover:text-red-600 block capitalize"
-                                          >
-                                            {child.name}
-                                          </Link>
-                                        </li>
-                                      ))}
-                                    </ul>
-                                  )}
-                                </li>
-                              );
-                            })}
-                          </ul>
-                        )}
-                      </li>
-                    ))}
+                                      {hasChildren && (
+                                        <button
+                                          onClick={() => toggleSubCategoryExpand(subId)}
+                                          className="p-1 text-stone-400 hover:text-black cursor-pointer"
+                                        >
+                                          {isSubExpanded ? (
+                                            <ChevronDown className="w-3.5 h-3.5" />
+                                          ) : (
+                                            <ChevronRight className="w-3.5 h-3.5" />
+                                          )}
+                                        </button>
+                                      )}
+                                    </div>
+
+                                    {/* Child Categories */}
+                                    {hasChildren && isSubExpanded && (
+                                      <ul className="pl-4 space-y-1 border-l-2 border-stone-200 ml-3 py-1">
+                                        {childList.map((child) => (
+                                          <li key={child._id || child.id}>
+                                            <Link
+                                              to={`/products?category=${cat.slug}&sub-category=${sub.slug}&child-category=${child.slug}`}
+                                              onClick={() => setMobileMenuOpen(false)}
+                                              className="text-[11px] text-stone-600 hover:text-orange-600 block py-1 capitalize"
+                                            >
+                                              {child.name}
+                                            </Link>
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    )}
+                                  </li>
+                                );
+                              })}
+                            </ul>
+                          )}
+                        </li>
+                      );
+                    })}
 
                   <li>
                     <NavLink

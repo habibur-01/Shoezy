@@ -303,8 +303,13 @@ const OrderTrackingPage = () => {
                           <p className="text-[11px] text-stone-500 leading-tight">
                             {step.description}
                           </p>
+                          {(step.actor || step.actorName) && (
+                            <span className="text-[10px] text-stone-500 font-medium block pt-0.5">
+                              Handled by {step.actorName || step.actor}
+                            </span>
+                          )}
                           {step.date && (
-                            <span className="text-[10px] text-stone-400 font-semibold block pt-1">
+                            <span className="text-[10px] text-stone-400 font-semibold block pt-0.5">
                               {new Date(step.date).toLocaleDateString("en-US", {
                                 month: "short",
                                 day: "numeric",
@@ -439,6 +444,63 @@ const OrderTrackingPage = () => {
               })}
             </div>
           </div>
+
+          {/* ADMINISTRATIVE ACTIVITIES & STATUS HISTORY LIST */}
+          {trackingData?.activities && trackingData.activities.length > 0 && (
+            <div className="bg-white rounded-2xl border border-stone-200 p-6 space-y-4 shadow-xs">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-extrabold uppercase tracking-wider text-stone-900 flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-stone-700" />
+                  <span>Administrative Processing & Verification History</span>
+                </h3>
+                <span className="text-xs text-stone-500 font-medium">
+                  {trackingData.activities.length} entries
+                </span>
+              </div>
+
+              <div className="space-y-2">
+                {trackingData.activities.map((act, idx) => (
+                  <div
+                    key={act.id || idx}
+                    className="p-3 bg-stone-50 rounded-xl border border-stone-200/80 flex items-start justify-between gap-3 text-xs"
+                  >
+                    <div className="space-y-0.5">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-stone-900">
+                          {act.actorName || act.actor || 'Operations Staff'}
+                        </span>
+                        {act.actorRole && (
+                          <span className="px-1.5 py-0.5 bg-stone-200/70 text-stone-700 rounded text-[9px] font-bold uppercase">
+                            {act.actorRole}
+                          </span>
+                        )}
+                        <span className="px-1.5 py-0.5 bg-amber-100 text-amber-900 rounded text-[9px] font-bold uppercase">
+                          {act.action ? act.action.replace(/_/g, ' ') : 'UPDATED'}
+                        </span>
+                      </div>
+                      <p className="text-stone-600 text-[11px]">
+                        {act.notes || act.note || 'Status processed successfully'}
+                      </p>
+                      {(act.carrier || act.trackingNumber) && (
+                        <p className="text-[10px] text-stone-500">
+                          {act.carrier && `Carrier: ${act.carrier} `}
+                          {act.trackingNumber && `(Tracking: ${act.trackingNumber})`}
+                        </p>
+                      )}
+                    </div>
+                    <span className="text-[10px] text-stone-400 font-mono shrink-0">
+                      {new Date(act.timestamp || Date.now()).toLocaleTimeString([], {
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -10,20 +10,20 @@ export const AnalyticsView = () => {
   const { customers, orders, metrics, assertPermission } = useAdmin();
   const [selectedTier, setSelectedTier] = useState('all');
 
-  const totalSpentAcrossAll = customers.reduce((sum, c) => sum + c.totalSpent, 0);
-  const averageOrderValue = metrics.totalRevenue / Math.max(1, orders.length);
+  const totalSpentAcrossAll = customers.reduce((sum, c) => sum + (Number(c.totalSpent) || 0), 0);
+  const averageOrderValue = (metrics.totalRevenue || 0) / Math.max(1, orders.length);
   const avgCustomerLtv = totalSpentAcrossAll / Math.max(1, customers.length);
 
-  const vipCount = customers.filter((c) => c.tier === 'VIP').length;
-  const regularCount = customers.filter((c) => c.tier === 'Regular').length;
-  const newCount = customers.filter((c) => c.tier === 'New').length;
-  const atRiskCount = customers.filter((c) => c.tier === 'At-Risk').length;
+  const vipCount = customers.filter((c) => (c.tier || '').toUpperCase() === 'VIP').length;
+  const regularCount = customers.filter((c) => (c.tier || '').toUpperCase() === 'REGULAR').length;
+  const newCount = customers.filter((c) => (c.tier || '').toUpperCase() === 'NEW').length;
+  const atRiskCount = customers.filter((c) => (c.tier || '').toUpperCase() === 'AT-RISK').length;
 
   const vipPercent = (vipCount / Math.max(1, customers.length) * 100).toFixed(0);
 
   const filteredCustomers = customers.filter((c) => {
     if (selectedTier === 'all') return true;
-    return c.tier.toLowerCase() === selectedTier.toLowerCase();
+    return String(c.tier || '').toLowerCase() === selectedTier.toLowerCase();
   });
 
   const exportAnalyticsCSV = () => {
