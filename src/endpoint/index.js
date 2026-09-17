@@ -76,3 +76,7 @@ export const ADMIN_ORDERS_ENDPOINT = "/api/admin/orders";
 
 // Admin Coupons
 export const ADMIN_COUPONS_ENDPOINT = "/api/admin/coupon";
+
+// Admin Roles & Permissions RBAC
+export const ADMIN_ROLES_ENDPOINT = "/api/admin/roles";
+export const ADMIN_ROLES_STAFF_ENDPOINT = "/api/admin/roles/staff";

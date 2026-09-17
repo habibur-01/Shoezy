@@ -14,9 +14,10 @@ export const CouponsView = ({
   isNewModalOpen: externalModalOpen,
   setIsNewModalOpen: setExternalModalOpen
 }) => {
-  const { coupons, createCoupon, toggleCouponStatus, deleteCoupon } = useAdmin();
+  const { coupons, createCoupon, toggleCouponStatus, deleteCoupon, refreshCoupons } = useAdmin();
 
   const [internalModalOpen, setInternalModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const isModalOpen = externalModalOpen !== undefined ? externalModalOpen : internalModalOpen;
   const setModalOpen = (open) => {
@@ -35,6 +36,7 @@ export const CouponsView = ({
   const [minSpend, setMinSpend] = useState(50);
   const [maxDiscount, setMaxDiscount] = useState(100);
   const [usageLimit, setUsageLimit] = useState(200);
+  const [usageLimitPerUser, setUsageLimitPerUser] = useState(1);
   const [customerTierLimit, setCustomerTierLimit] = useState('all');
   const [validCategory, setValidCategory] = useState('All');
   const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
@@ -48,29 +50,35 @@ export const CouponsView = ({
     setCode(generated);
   };
 
-  const handleCreateCouponSubmit = (e) => {
+  const handleCreateCouponSubmit = async (e) => {
     e.preventDefault();
-    if (!code.trim()) return;
+    if (!code.trim() || isSubmitting) return;
 
-    const success = createCoupon({
-      code: code.trim().toUpperCase(),
-      description: description || `${discountValue}% promotional discount`,
-      discountType,
-      discountValue: Number(discountValue),
-      minSpend: Number(minSpend),
-      maxDiscount: discountType === 'percentage' && maxDiscount ? Number(maxDiscount) : undefined,
-      usageLimit: Number(usageLimit),
-      customerTierLimit,
-      validCategory,
-      startDate,
-      endDate,
-      isActive: true
-    });
+    try {
+      setIsSubmitting(true);
+      const created = await createCoupon({
+        code: code.trim().toUpperCase(),
+        description: description || `${discountValue}${discountType === 'percentage' ? '%' : '$'} promotional discount`,
+        discountType,
+        discountValue: Number(discountValue),
+        minSpend: Number(minSpend),
+        maxDiscount: discountType === 'percentage' && maxDiscount ? Number(maxDiscount) : 0,
+        usageLimit: Number(usageLimit),
+        usageLimitPerUser: Number(usageLimitPerUser || 1),
+        customerTierLimit,
+        validCategory,
+        startDate,
+        endDate,
+        isActive: true
+      });
 
-    if (success) {
-      setModalOpen(false);
-      setCode('');
-      setDescription('');
+      if (created) {
+        setModalOpen(false);
+        setCode('');
+        setDescription('');
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -84,18 +92,17 @@ export const CouponsView = ({
     <div className="space-y-6">
       {/* Top Header */}
       <CouponsHeader
+        onRefresh={refreshCoupons}
         onOpenGenerator={() => {
           generateRandomPromoCode('FLASH');
           setModalOpen(true);
         }} />
-      
 
       {/* Coupons List Cards */}
       <CouponsGrid
         coupons={coupons}
         onToggleStatus={toggleCouponStatus}
         onDeleteCoupon={handleDeleteCoupon} />
-      
 
       {/* Custom Coupon Generator Modal */}
       <CouponGeneratorModal
@@ -111,8 +118,12 @@ export const CouponsView = ({
         setDiscountValue={setDiscountValue}
         minSpend={minSpend}
         setMinSpend={setMinSpend}
+        maxDiscount={maxDiscount}
+        setMaxDiscount={setMaxDiscount}
         usageLimit={usageLimit}
         setUsageLimit={setUsageLimit}
+        usageLimitPerUser={usageLimitPerUser}
+        setUsageLimitPerUser={setUsageLimitPerUser}
         customerTierLimit={customerTierLimit}
         setCustomerTierLimit={setCustomerTierLimit}
         startDate={startDate}
@@ -120,8 +131,8 @@ export const CouponsView = ({
         endDate={endDate}
         setEndDate={setEndDate}
         onGenerateCode={() => generateRandomPromoCode('PROMO')}
-        onSubmit={handleCreateCouponSubmit} />
-      
+        onSubmit={handleCreateCouponSubmit}
+        isSubmitting={isSubmitting} />
     </div>);
 
 };

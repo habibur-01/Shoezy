@@ -42,6 +42,8 @@ export const CouponGeneratorModal = ({
   setMinSpend,
   usageLimit,
   setUsageLimit,
+  usageLimitPerUser = 1,
+  setUsageLimitPerUser,
   customerTierLimit,
   setCustomerTierLimit,
   startDate,
@@ -181,18 +183,30 @@ export const CouponGeneratorModal = ({
           </div>
 
           {/* Usage Limit & Customer Tier */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="block font-medium text-zinc-700 mb-1">Total Max Usage Limit</label>
+              <label className="block font-medium text-zinc-700 mb-1">Per-User Limit</label>
               <input
-                id="form-coupon-usage-limit"
+                id="form-coupon-user-limit"
                 type="number"
                 min="1"
                 required
-                value={usageLimit}
-                onChange={(e) => setUsageLimit(parseInt(e.target.value) || 1)}
+                value={usageLimitPerUser}
+                onChange={(e) => setUsageLimitPerUser && setUsageLimitPerUser(parseInt(e.target.value) || 1)}
                 className="w-full px-3 py-2 border border-zinc-200 rounded-lg text-xs focus:ring-2 focus:ring-zinc-900 focus:outline-hidden" />
-              
+              <span className="text-[10px] text-zinc-400">Max uses per user</span>
+            </div>
+            <div>
+              <label className="block font-medium text-zinc-700 mb-1">Total Max Limit</label>
+              <input
+                id="form-coupon-usage-limit"
+                type="number"
+                min="0"
+                required
+                value={usageLimit}
+                onChange={(e) => setUsageLimit(parseInt(e.target.value) || 0)}
+                className="w-full px-3 py-2 border border-zinc-200 rounded-lg text-xs focus:ring-2 focus:ring-zinc-900 focus:outline-hidden" />
+              <span className="text-[10px] text-zinc-400">0 = Unlimited</span>
             </div>
             <div>
               <label className="block font-medium text-zinc-700 mb-1">Customer Eligibility</label>
@@ -204,8 +218,9 @@ export const CouponGeneratorModal = ({
                 
                 <option value="all">All Shoppers</option>
                 <option value="vip">VIP Tier Only</option>
-                <option value="new">First-Time Customers Only</option>
+                <option value="new">First-Time Only</option>
               </select>
+              <span className="text-[10px] text-zinc-400">Target audience</span>
             </div>
           </div>
 

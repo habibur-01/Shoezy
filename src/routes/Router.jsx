@@ -1,33 +1,41 @@
 import { Route, Routes, Navigate } from "react-router-dom";
 import MainLayout from "../layouts/MainLayout";
-import Home from "../pages/Home";
-import ProductDetails from "../pages/ProductDetails";
-import Login from "../pages/auth/Login";
-import Signup from "../pages/auth/Signup";
-import ForgotPassword from "../pages/auth/ForgotPassword";
-import ResetPassword from "../pages/auth/ResetPassword";
-import VerifyEmail from "../pages/auth/VerifyEmail";
-import ErrorPage from "../pages/ErrorPage";
-import CartPage from "../pages/customer/CartPage";
-import PrivateRoute from "../components/PrivateRoute/PrivatRoute";
-import WishlistPage from "../pages/customer/WishListPage";
-import ShopPage from "../pages/ShopPage";
-import OutletsPage from "../pages/OutletsPage";
-import ProfileDetails from "../components/Profile/ProfileDteails";
-import ProfilePageLayout from "../layouts/ProfilePageLayout";
-import BillingAddress from "../components/Profile/BillingAddress";
-import CheckoutPage from "../pages/customer/CheckoutPage";
-import MyOrders from "../components/Profile/MyOrders";
-import MyReturns from "../components/Profile/MyReturns";
-import MyCancellations from "../components/Profile/MyCancellations";
-import UserPaymentOptions from "../components/Profile/UserPaymentOptions";
-import OrderTrackingPage from "../components/Profile/OrderTrackingPage";
 import AuthLayout from "../layouts/AuthLayout";
-
-// Admin Infrastructure
+import ProfilePageLayout from "../layouts/ProfilePageLayout";
 import AdminLayout from "../layouts/AdminLayout";
+import PrivateRoute from "../components/PrivateRoute/PrivatRoute";
 import AdminRoute from "../components/PrivateRoute/AdminRoute";
-import AdminLogin from "../pages/admin/AdminLogin";
+
+// Common Pages (Root of pages)
+import Home from "../pages/Home";
+import ShopPage from "../pages/ShopPage";
+import ProductDetails from "../pages/ProductDetails";
+import OutletsPage from "../pages/OutletsPage";
+import ErrorPage from "../pages/ErrorPage";
+
+// Authentication Pages - Customer
+import Login from "../pages/auth/customer/Login";
+import Signup from "../pages/auth/customer/Signup";
+import ForgotPassword from "../pages/auth/customer/ForgotPassword";
+import ResetPassword from "../pages/auth/customer/ResetPassword";
+import VerifyEmail from "../pages/auth/customer/VerifyEmail";
+
+// Authentication Pages - Admin
+import AdminLogin from "../pages/auth/admin/AdminLogin";
+
+// Customer Pages
+import CartPage from "../pages/customer/CartPage";
+import WishlistPage from "../pages/customer/WishListPage";
+import CheckoutPage from "../pages/customer/CheckoutPage";
+import ProfileDetails from "../pages/customer/ProfileDetails";
+import BillingAddress from "../pages/customer/BillingAddress";
+import UserPaymentOptions from "../pages/customer/UserPaymentOptions";
+import MyOrders from "../pages/customer/MyOrders";
+import MyReturns from "../pages/customer/MyReturns";
+import MyCancellations from "../pages/customer/MyCancellations";
+import OrderTrackingPage from "../pages/customer/OrderTrackingPage";
+
+// Admin Operations Pages
 import AdminDashboard from "../pages/admin/AdminDashboard";
 import ProductsPage from "../pages/admin/ProductsView";
 import AddProductPage from "../pages/admin/AddProductView";

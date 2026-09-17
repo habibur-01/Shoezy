@@ -2,7 +2,16 @@ import React, { createContext, useContext, useState, useMemo, useEffect } from '
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import { setCategories as setReduxCategories } from '../redux/features/initial/initialSlice';
-import { INITIAL_ROLES } from '../data/mockData';
+import { INITIAL_ROLES, INITIAL_TEAM_MEMBERS } from '../data/mockData';
+import {
+  getAdminRoles,
+  getAdminStaffMembers,
+  updateRolePermissionsApi,
+  createAdminRole,
+  assignStaffRoleApi,
+  updateStaffStatusApi,
+  inviteStaffMemberApi,
+} from '../server/roles/adminRoles';
 import {
   getAdminProducts,
   createAdminProduct,
@@ -31,6 +40,7 @@ import {
   getAdminCoupons,
   createAdminCoupon as createAdminCouponApi,
   updateAdminCoupon as updateAdminCouponApi,
+  toggleAdminCouponStatus as toggleAdminCouponStatusApi,
   deleteAdminCoupon as deleteAdminCouponApi,
 } from '../server/coupon/adminCoupon';
 import { getAllAdminUsers } from '../server/user/adminUser';
@@ -43,7 +53,7 @@ export const AdminProvider = ({ children }) => {
 
   // Team and RBAC state
   const [roles, setRoles] = useState(INITIAL_ROLES);
-  const [teamMembers, setTeamMembers] = useState([]);
+  const [teamMembers, setTeamMembers] = useState(INITIAL_TEAM_MEMBERS);
 
   // Active User Persona / Member ID
   const [currentUserId, setCurrentUserId] = useState(authUser?._id || authUser?.id || 'usr-admin');
@@ -426,28 +436,103 @@ export const AdminProvider = ({ children }) => {
     }
   };
 
+  // Helper to normalize coupon objects from backend API
+  const normalizeCoupon = (c) => {
+    if (!c) return null;
+    const rawType = c.discountType || 'percent';
+    const normalizedType =
+      rawType === 'percent' || rawType === 'percentage'
+        ? 'percentage'
+        : rawType === 'free_shipping'
+        ? 'free_shipping'
+        : 'fixed_amount';
+
+    const expiryDateStr = c.expiry || c.expiryDate || c.endDate || '';
+    let formattedEndDate = '';
+    if (expiryDateStr) {
+      try {
+        formattedEndDate = new Date(expiryDateStr).toISOString().split('T')[0];
+      } catch (_) {
+        formattedEndDate = String(expiryDateStr).split('T')[0];
+      }
+    }
+
+    const startDateStr = c.startDate || c.validFrom || '';
+    let formattedStartDate = '';
+    if (startDateStr) {
+      try {
+        formattedStartDate = new Date(startDateStr).toISOString().split('T')[0];
+      } catch (_) {
+        formattedStartDate = String(startDateStr).split('T')[0];
+      }
+    }
+
+    const isActive = c.isActive !== undefined ? Boolean(c.isActive) : c.status === 'active';
+
+    return {
+      id: c._id || c.id,
+      _id: c._id || c.id,
+      code: String(c.code || '').toUpperCase(),
+      description: c.description || '',
+      discountType: normalizedType,
+      rawDiscountType: rawType,
+      discountValue: Number(c.discountValue ?? c.discount ?? 0),
+      discount: Number(c.discountValue ?? c.discount ?? 0),
+      minSpend: Number(c.minPurchase ?? c.minSpend ?? 0),
+      minPurchase: Number(c.minPurchase ?? c.minSpend ?? 0),
+      maxDiscount: Number(c.maxDiscount ?? 0),
+      isActive: isActive,
+      status: isActive ? 'active' : 'inactive',
+      usedCount: Number(c.usedCount ?? c.timesUsed ?? 0),
+      timesUsed: Number(c.usedCount ?? c.timesUsed ?? 0),
+      usageLimit: Number(c.usageLimit ?? 0),
+      usageLimitPerUser: Number(c.usageLimitPerUser ?? 1),
+      customerTierLimit: c.customerTierLimit || 'all',
+      validCategory: c.validCategory || 'All',
+      startDate: formattedStartDate,
+      endDate: formattedEndDate,
+      expiry: expiryDateStr,
+      expiryDate: expiryDateStr,
+    };
+  };
+
   // Load real coupons from backend
   const loadCoupons = async () => {
     try {
       const res = await getAdminCoupons();
       const couponsData = res?.data || (Array.isArray(res) ? res : []);
       if (Array.isArray(couponsData)) {
-        const normalized = couponsData.map((c) => ({
-          id: c._id || c.id,
-          _id: c._id || c.id,
-          code: c.code,
-          description: c.description || '',
-          discountType: c.discountType || 'percentage',
-          discountValue: c.discountValue || c.discount || 0,
-          minSpend: c.minPurchase || c.minSpend || 0,
-          status: c.isActive ? 'active' : (c.status || 'active'),
-          timesUsed: c.timesUsed || 0,
-          expiryDate: c.expiryDate,
-        }));
+        const normalized = couponsData.map(normalizeCoupon).filter(Boolean);
         setCoupons(normalized);
       }
     } catch (err) {
       console.warn('API error loading coupons:', err.message);
+    }
+  };
+
+  // Load real roles and staff from backend API
+  const loadRolesAndStaff = async () => {
+    try {
+      const [rolesRes, staffRes] = await Promise.allSettled([
+        getAdminRoles(),
+        getAdminStaffMembers(),
+      ]);
+
+      if (rolesRes.status === 'fulfilled' && rolesRes.value?.data) {
+        const rolesData = rolesRes.value.data;
+        if (Array.isArray(rolesData) && rolesData.length > 0) {
+          setRoles(rolesData);
+        }
+      }
+
+      if (staffRes.status === 'fulfilled' && staffRes.value?.data) {
+        const staffData = staffRes.value.data;
+        if (Array.isArray(staffData) && staffData.length > 0) {
+          setTeamMembers(staffData);
+        }
+      }
+    } catch (err) {
+      console.warn('API error loading roles and staff:', err.message);
     }
   };
 
@@ -457,6 +542,7 @@ export const AdminProvider = ({ children }) => {
     loadOrders();
     loadCustomers();
     loadCoupons();
+    loadRolesAndStaff();
   }, []);
 
   // Realtime Inventory & Alerts engine
@@ -1180,71 +1266,125 @@ export const AdminProvider = ({ children }) => {
   // ==========================================
   const createCoupon = async (couponData) => {
     try {
-      const res = await createAdminCouponApi({
-        code: couponData.code,
-        discount: couponData.discountValue,
-        discountType: couponData.discountType,
-        minPurchase: couponData.minSpend,
-        expiryDate: couponData.expiryDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-        isActive: true,
-      });
-      const created = res?.data || res;
-      const newCoupon = {
-        id: created._id || created.id || `cpn-${Date.now()}`,
-        _id: created._id || created.id,
-        code: created.code || couponData.code,
-        timesUsed: 0,
-        status: 'active',
-        discountType: couponData.discountType,
-        discountValue: couponData.discountValue,
-        minSpend: couponData.minSpend,
-        validFrom: new Date().toISOString().split('T')[0],
+      const payload = {
+        code: String(couponData.code || '').trim().toUpperCase(),
+        description: couponData.description || '',
+        discountType: couponData.discountType === 'percentage'
+          ? 'percent'
+          : (couponData.discountType === 'fixed_amount' ? 'flat' : couponData.discountType || 'percent'),
+        discountValue: Number(couponData.discountValue ?? couponData.discount ?? 0),
+        minPurchase: Number(couponData.minSpend ?? couponData.minPurchase ?? 0),
+        maxDiscount: Number(couponData.maxDiscount ?? 0),
+        usageLimit: Number(couponData.usageLimit ?? 0),
+        usageLimitPerUser: Number(couponData.usageLimitPerUser ?? 1),
+        customerTierLimit: couponData.customerTierLimit || 'all',
+        validCategory: couponData.validCategory || 'All',
+        startDate: couponData.startDate || new Date().toISOString(),
+        expiry: couponData.endDate || couponData.expiry || couponData.expiryDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        isActive: couponData.isActive !== undefined ? Boolean(couponData.isActive) : true,
       };
-      setCoupons((prev) => [newCoupon, ...prev]);
+
+      const res = await createAdminCouponApi(payload);
+      const createdItem = res?.data || res;
+      const newCoupon = normalizeCoupon(createdItem) || {
+        ...payload,
+        id: createdItem._id || createdItem.id || `cpn-${Date.now()}`,
+        _id: createdItem._id || createdItem.id,
+        status: payload.isActive ? 'active' : 'inactive',
+        usedCount: 0,
+      };
+
+      setCoupons((prev) => [newCoupon, ...prev.filter((c) => c.code !== newCoupon.code)]);
+
+      addAuditLog({
+        action: 'COUPON_CREATED',
+        entity: 'Promotion',
+        entityId: newCoupon.code,
+        details: `Issued new promotional coupon "${newCoupon.code}" (${newCoupon.discountValue}${newCoupon.discountType === 'percentage' ? '%' : '$'} OFF)`,
+      });
+
       toast.success(`Coupon code ${newCoupon.code} created!`);
       return newCoupon;
     } catch (err) {
       console.error('Failed to create coupon:', err);
-      toast.error(err?.response?.data?.message || err?.message || 'Failed to create coupon');
+      const errMsg = err?.response?.data?.message || err?.response?.data?.error || err?.message || 'Failed to create coupon';
+      toast.error(errMsg);
       return null;
     }
   };
 
   const toggleCouponStatus = async (couponId) => {
     const current = coupons.find((c) => c.id === couponId || c._id === couponId);
-    const nextStatus = current?.status === 'active' ? 'inactive' : 'active';
+    if (!current) return;
+    const nextActive = !current.isActive;
+    const nextStatus = nextActive ? 'active' : 'inactive';
+
     setCoupons((prev) =>
       prev.map((c) =>
         c.id === couponId || c._id === couponId
-          ? { ...c, status: nextStatus }
+          ? { ...c, isActive: nextActive, status: nextStatus }
           : c
       )
     );
+
     try {
-      await updateAdminCouponApi(couponId, { isActive: nextStatus === 'active' });
-      toast.info('Coupon status updated.');
+      await toggleAdminCouponStatusApi(couponId, nextActive);
+      toast.info(`Coupon "${current.code}" status changed to ${nextStatus}.`);
     } catch (err) {
-      console.warn('API coupon toggle error:', err.message);
+      try {
+        await updateAdminCouponApi(couponId, { isActive: nextActive });
+        toast.info(`Coupon "${current.code}" status changed to ${nextStatus}.`);
+      } catch (fallbackErr) {
+        console.warn('API coupon toggle error:', fallbackErr.message);
+      }
     }
+
+    addAuditLog({
+      action: 'COUPON_STATUS_MODIFIED',
+      entity: 'Promotion',
+      entityId: current.code,
+      details: `Changed status of coupon "${current.code}" to ${nextStatus}`,
+    });
   };
 
   const deleteCoupon = async (couponId) => {
+    const target = coupons.find((c) => c.id === couponId || c._id === couponId);
     setCoupons((prev) => prev.filter((c) => c.id !== couponId && c._id !== couponId));
     try {
       await deleteAdminCouponApi(couponId);
-      toast.info('Coupon deleted.');
+      toast.info(`Coupon "${target?.code || couponId}" deleted.`);
     } catch (err) {
       console.warn('API coupon delete error:', err.message);
+    }
+
+    if (target) {
+      addAuditLog({
+        action: 'COUPON_REVOKED',
+        entity: 'Promotion',
+        entityId: target.code,
+        details: `Permanently revoked promo coupon "${target.code}"`,
+        severity: 'warning',
+      });
     }
   };
 
   // ==========================================
-  // ROLES & STAFF RBAC MANAGEMENT
+  // ROLES & STAFF RBAC MANAGEMENT (API INTEGRATED)
   // ==========================================
-  const updateRolePermissions = (roleId, newPermissions) => {
+  const updateRolePermissions = async (roleId, newPermissions) => {
+    // Optimistic UI update
     setRoles((prev) =>
       prev.map((r) => (r.id === roleId ? { ...r, permissions: newPermissions } : r))
     );
+
+    try {
+      await updateRolePermissionsApi(roleId, newPermissions);
+      toast.success('Role capability permissions updated.');
+    } catch (err) {
+      console.error('Failed to update role permissions:', err);
+      toast.error(err?.response?.data?.message || 'Failed to update permissions on server');
+      loadRolesAndStaff();
+    }
 
     addAuditLog({
       action: 'RBAC_CAPABILITIES_MODIFIED',
@@ -1252,35 +1392,63 @@ export const AdminProvider = ({ children }) => {
       entityId: roleId,
       details: `Modified granted capability flags for role "${roleId}" (${newPermissions.length} active)`,
     });
-
-    toast.success('Role capability permissions updated.');
   };
 
-  const createCustomRole = ({ name, description, permissions }) => {
-    const newRole = {
-      id: `role_${Date.now()}`,
-      name,
-      description,
-      color: 'indigo',
-      isCustom: true,
-      permissions: permissions || [],
-    };
-    setRoles((prev) => [...prev, newRole]);
+  const createCustomRole = async (nameOrObj, descParam, permsParam, colorParam) => {
+    const name = typeof nameOrObj === 'object' ? nameOrObj.name : nameOrObj;
+    const description = typeof nameOrObj === 'object' ? nameOrObj.description : descParam;
+    const permissions = typeof nameOrObj === 'object' ? nameOrObj.permissions : permsParam;
+    const roleColor = typeof nameOrObj === 'object' ? (nameOrObj.color || 'indigo') : (colorParam || 'indigo');
 
-    addAuditLog({
-      action: 'CUSTOM_ROLE_CREATED',
-      entity: 'SecurityMatrix',
-      entityId: newRole.id,
-      details: `Created new custom security role "${name}"`,
-    });
+    try {
+      const res = await createAdminRole({
+        name,
+        description,
+        permissions: permissions || [],
+        color: roleColor,
+      });
 
-    toast.success(`Role "${name}" created.`);
+      const createdRole = res?.data || {
+        id: `role_${Date.now()}`,
+        name,
+        description,
+        color: roleColor,
+        isCustom: true,
+        permissions: permissions || [],
+      };
+
+      setRoles((prev) => [...prev, createdRole]);
+
+      addAuditLog({
+        action: 'CUSTOM_ROLE_CREATED',
+        entity: 'SecurityMatrix',
+        entityId: createdRole.id,
+        details: `Created new custom security role "${name}"`,
+      });
+
+      toast.success(`Role "${name}" created.`);
+      return true;
+    } catch (err) {
+      console.error('Failed to create role:', err);
+      toast.error(err?.response?.data?.message || 'Failed to create role');
+      return false;
+    }
   };
 
-  const assignMemberRole = (memberId, newRoleId) => {
+  const assignMemberRole = async (memberId, newRoleId) => {
+    // Optimistic UI update
     setTeamMembers((prev) =>
       prev.map((m) => (m.id === memberId ? { ...m, roleId: newRoleId } : m))
     );
+
+    try {
+      await assignStaffRoleApi(memberId, newRoleId);
+      toast.success('Team member role assigned.');
+    } catch (err) {
+      console.error('Failed to assign staff role:', err);
+      toast.error(err?.response?.data?.message || 'Failed to update role on server');
+      loadRolesAndStaff();
+    }
 
     addAuditLog({
       action: 'STAFF_ROLE_REASSIGNED',
@@ -1288,39 +1456,57 @@ export const AdminProvider = ({ children }) => {
       entityId: memberId,
       details: `Reassigned team member ${memberId} to role "${newRoleId}"`,
     });
-
-    toast.success('Team member role assigned.');
   };
 
-  const updateMemberStatus = (memberId, newStatus) => {
+  const updateMemberStatus = async (memberId, newStatus) => {
     setTeamMembers((prev) =>
       prev.map((m) => (m.id === memberId ? { ...m, status: newStatus } : m))
     );
-    toast.info(`Member status set to ${newStatus}`);
+
+    try {
+      await updateStaffStatusApi(memberId, newStatus);
+      toast.info(`Member status set to ${newStatus}`);
+    } catch (err) {
+      console.error('Failed to update staff status:', err);
+      toast.error(err?.response?.data?.message || 'Failed to update status on server');
+      loadRolesAndStaff();
+    }
   };
 
-  const inviteTeamMember = ({ name, email, roleId }) => {
-    const newMember = {
-      id: `usr-${Date.now()}`,
-      name,
-      email,
-      roleId,
-      status: 'active',
-      lastActive: 'Just invited',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80',
-      joinedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-    };
+  const inviteTeamMember = async (nameOrObj, emailParam, roleIdParam) => {
+    const name = typeof nameOrObj === 'object' ? nameOrObj.name : nameOrObj;
+    const email = typeof nameOrObj === 'object' ? nameOrObj.email : emailParam;
+    const roleId = typeof nameOrObj === 'object' ? nameOrObj.roleId : roleIdParam;
 
-    setTeamMembers((prev) => [...prev, newMember]);
+    try {
+      const res = await inviteStaffMemberApi({ name, email, roleId });
+      const newMember = res?.data || {
+        id: `usr-${Date.now()}`,
+        name,
+        email,
+        roleId,
+        status: 'active',
+        lastActive: 'Just invited',
+        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80',
+        joinedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+      };
 
-    addAuditLog({
-      action: 'STAFF_INVITED',
-      entity: 'StaffTeam',
-      entityId: newMember.id,
-      details: `Invited new team member "${name}" (${email}) with role ${roleId}`,
-    });
+      setTeamMembers((prev) => [...prev, newMember]);
 
-    toast.success(`Invitation sent to ${email}`);
+      addAuditLog({
+        action: 'STAFF_INVITED',
+        entity: 'StaffTeam',
+        entityId: newMember.id,
+        details: `Invited new team member "${name}" (${email}) with role ${roleId}`,
+      });
+
+      toast.success(`Invitation sent to ${email}`);
+      return true;
+    } catch (err) {
+      console.error('Failed to invite team member:', err);
+      toast.error(err?.response?.data?.message || 'Failed to invite team member');
+      return false;
+    }
   };
 
   const dismissAlert = (alertId) => {
@@ -1379,6 +1565,7 @@ export const AdminProvider = ({ children }) => {
 
         // Coupons
         coupons,
+        refreshCoupons: loadCoupons,
         createCoupon,
         toggleCouponStatus,
         deleteCoupon,

@@ -1,0 +1,13 @@
+export { default as CartPage } from "../customer/CartPage";
+export { default as CheckoutPage } from "../customer/CheckoutPage";
+export { default as PaymentMethod } from "../customer/PaymentMethod";
+export { default as ProfilePage } from "../customer/ProfilePage";
+export { default as WishListPage } from "../customer/WishListPage";
+export { default as WishlistPage } from "../customer/WishListPage";
+export { default as ProfileDetails } from "../customer/ProfileDetails";
+export { default as BillingAddress } from "../customer/BillingAddress";
+export { default as UserPaymentOptions } from "../customer/UserPaymentOptions";
+export { default as MyOrders } from "../customer/MyOrders";
+export { default as MyReturns } from "../customer/MyReturns";
+export { default as MyCancellations } from "../customer/MyCancellations";
+export { default as OrderTrackingPage } from "../customer/OrderTrackingPage";

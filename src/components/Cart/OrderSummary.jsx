@@ -42,6 +42,11 @@ const OrderSummary = ({
 
   const handleApply = () => {
     if (!coupon.trim()) return;
+    if (!hasUser) {
+      toast.warning("Please sign in to your account to apply promo coupons");
+      navigate("/login");
+      return;
+    }
     onApplyCoupon(coupon.trim());
     setCoupon("");
   };

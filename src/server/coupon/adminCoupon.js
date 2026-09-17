@@ -41,6 +41,19 @@ export const updateAdminCoupon = async (couponId, couponData) => {
 };
 
 /**
+ * Toggle coupon active status (Admin)
+ */
+export const toggleAdminCouponStatus = async (couponId, isActive) => {
+  try {
+    const response = await api.patch(`${ADMIN_COUPONS_ENDPOINT}/${couponId}/status`, { isActive });
+    return response.data;
+  } catch (error) {
+    console.error("toggleAdminCouponStatus error:", error);
+    throw error;
+  }
+};
+
+/**
  * Delete a coupon (Admin)
  */
 export const deleteAdminCoupon = async (couponId) => {
@@ -52,3 +65,4 @@ export const deleteAdminCoupon = async (couponId) => {
     throw error;
   }
 };
+

@@ -22,11 +22,24 @@ export const CouponCard = ({
 }) => {
   const [copied, setCopied] = useState(false);
 
-  const usagePercent = Math.min(
-    100,
-    Math.round(coupon.usedCount / coupon.usageLimit * 100)
-  );
-  const isExpired = new Date(coupon.endDate) < new Date();
+  const isPercentage = coupon.discountType === 'percentage' || coupon.discountType === 'percent';
+  const isFixed = coupon.discountType === 'fixed_amount' || coupon.discountType === 'flat' || coupon.discountType === 'fixed';
+
+  const usageLimit = Number(coupon.usageLimit) || 0;
+  const usedCount = Number(coupon.usedCount ?? coupon.timesUsed ?? 0);
+  const usagePercent = usageLimit > 0
+    ? Math.min(100, Math.round((usedCount / usageLimit) * 100))
+    : 0;
+
+  const expiryDate = coupon.endDate || coupon.expiry || coupon.expiryDate;
+  const isExpired = expiryDate ? new Date(expiryDate).getTime() < Date.now() : false;
+  const formattedExpiry = expiryDate
+    ? new Date(expiryDate).toLocaleDateString(undefined, {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      })
+    : 'No Expiry';
 
   const handleCopy = () => {
     navigator.clipboard.writeText(coupon.code);
@@ -48,18 +61,17 @@ export const CouponCard = ({
           <div className="flex items-center gap-2">
             <span
               className={`p-2 rounded-lg ${
-              coupon.discountType === 'percentage' ?
+              isPercentage ?
               'bg-indigo-50 text-indigo-700' :
-              coupon.discountType === 'fixed_amount' ?
+              isFixed ?
               'bg-emerald-50 text-emerald-700' :
               'bg-amber-50 text-amber-700'}`
               }>
               
-              {coupon.discountType === 'percentage' ?
+              {isPercentage ?
               <Percent className="w-4 h-4" /> :
-              coupon.discountType === 'fixed_amount' ?
+              isFixed ?
               <DollarSign className="w-4 h-4" /> :
-
               <Truck className="w-4 h-4" />
               }
             </span>
@@ -84,28 +96,27 @@ export const CouponCard = ({
             
             {copied ?
             <Check className="w-4 h-4 text-emerald-600" /> :
-
             <Copy className="w-4 h-4" />
             }
           </button>
         </div>
 
-        <p className="text-xs text-zinc-600 mb-4 leading-relaxed">{coupon.description}</p>
+        <p className="text-xs text-zinc-600 mb-4 leading-relaxed">{coupon.description || 'Promotional coupon discount'}</p>
 
         {/* Offer value banner */}
         <div className="p-3 bg-zinc-50 border border-zinc-100 rounded-lg mb-4 text-xs space-y-1">
           <div className="flex items-center justify-between">
             <span className="text-zinc-500">Discount:</span>
             <span className="font-bold text-zinc-900">
-              {coupon.discountType === 'percentage' ?
-              `${coupon.discountValue}% OFF` :
-              coupon.discountType === 'fixed_amount' ?
+              {isPercentage ?
+              `${coupon.discountValue}% OFF${coupon.maxDiscount > 0 ? ` (up to $${coupon.maxDiscount})` : ''}` :
+              isFixed ?
               `$${coupon.discountValue}.00 OFF` :
               'Free Expedited Shipping'}
             </span>
           </div>
           <div className="flex items-center justify-between text-[11px] text-zinc-500">
-            <span>Min Spend: ${coupon.minSpend}</span>
+            <span>Min Spend: ${coupon.minSpend || 0}</span>
             <span>Category: {coupon.validCategory || 'All'}</span>
           </div>
         </div>
@@ -115,16 +126,19 @@ export const CouponCard = ({
           <div className="flex items-center justify-between text-[11px] text-zinc-500">
             <span>Redemption Progress</span>
             <span className="font-mono font-medium text-zinc-700">
-              {coupon.usedCount} / {coupon.usageLimit} ({usagePercent}%)
+              {usedCount} / {usageLimit > 0 ? usageLimit : '∞'} {usageLimit > 0 ? `(${usagePercent}%)` : ''}
             </span>
           </div>
           <div className="w-full bg-zinc-100 h-2 rounded-full overflow-hidden">
             <div
-              style={{ width: `${usagePercent}%` }}
+              style={{ width: `${usageLimit > 0 ? usagePercent : Math.min(100, usedCount * 5)}%` }}
               className={`h-full rounded-full transition-all ${
               usagePercent > 90 ? 'bg-amber-500' : 'bg-indigo-600'}`
               } />
-            
+          </div>
+          <div className="flex items-center justify-between text-[10px] text-zinc-400 pt-0.5">
+            <span>Per-user cap:</span>
+            <span className="font-medium text-zinc-600">{coupon.usageLimitPerUser || 1} use{(coupon.usageLimitPerUser || 1) > 1 ? 's' : ''} max</span>
           </div>
         </div>
       </div>
@@ -133,8 +147,8 @@ export const CouponCard = ({
       <div className="pt-3 border-t border-zinc-100 flex items-center justify-between text-xs">
         <div className="flex items-center gap-2">
           <button
-            id={`toggle-coupon-active-${coupon.id}`}
-            onClick={() => onToggleStatus(coupon.id)}
+            id={`toggle-coupon-active-${coupon.id || coupon._id}`}
+            onClick={() => onToggleStatus(coupon.id || coupon._id)}
             className={`px-2 py-0.5 rounded text-[10px] font-semibold border transition-colors cursor-pointer ${
             coupon.isActive && !isExpired ?
             'bg-emerald-50 text-emerald-700 border-emerald-200' :
@@ -143,12 +157,12 @@ export const CouponCard = ({
             
             {isExpired ? 'Expired' : coupon.isActive ? 'Active' : 'Disabled'}
           </button>
-          <span className="text-[10px] text-zinc-400">Exp: {coupon.endDate}</span>
+          <span className="text-[10px] text-zinc-400">Exp: {formattedExpiry}</span>
         </div>
 
         <button
-          id={`delete-coupon-${coupon.id}`}
-          onClick={() => onDeleteCoupon(coupon.id, coupon.code)}
+          id={`delete-coupon-${coupon.id || coupon._id}`}
+          onClick={() => onDeleteCoupon(coupon.id || coupon._id, coupon.code)}
           className="p-1 text-zinc-400 hover:text-rose-600 rounded transition-colors cursor-pointer"
           title="Revoke and delete coupon">
           

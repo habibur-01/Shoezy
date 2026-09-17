@@ -40,8 +40,12 @@ export const CouponGeneratorModal = ({
   setDiscountValue,
   minSpend,
   setMinSpend,
+  maxDiscount,
+  setMaxDiscount,
   usageLimit,
   setUsageLimit,
+  usageLimitPerUser = 1,
+  setUsageLimitPerUser,
   customerTierLimit,
   setCustomerTierLimit,
   startDate,
@@ -49,9 +53,11 @@ export const CouponGeneratorModal = ({
   endDate,
   setEndDate,
   onGenerateCode,
-  onSubmit
+  onSubmit,
+  isSubmitting = false
 }) => {
   if (!isOpen) return null;
+
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/60 backdrop-blur-xs animate-in fade-in duration-200">
@@ -150,7 +156,7 @@ export const CouponGeneratorModal = ({
           </div>
 
           {/* Discount Value & Min Spend */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className={`grid ${discountType === 'percentage' ? 'grid-cols-3' : 'grid-cols-2'} gap-3`}>
             <div>
               <label className="block font-medium text-zinc-700 mb-1">
                 {discountType === 'percentage' ? 'Percentage Value (%)' : 'Deduction Amount ($)'}
@@ -164,7 +170,6 @@ export const CouponGeneratorModal = ({
                 value={discountValue}
                 onChange={(e) => setDiscountValue(parseFloat(e.target.value) || 0)}
                 className="w-full px-3 py-2 border border-zinc-200 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-zinc-900 focus:outline-hidden" />
-              
             </div>
             <div>
               <label className="block font-medium text-zinc-700 mb-1">Minimum Cart Spend ($)</label>
@@ -176,23 +181,47 @@ export const CouponGeneratorModal = ({
                 value={minSpend}
                 onChange={(e) => setMinSpend(parseFloat(e.target.value) || 0)}
                 className="w-full px-3 py-2 border border-zinc-200 rounded-lg text-xs focus:ring-2 focus:ring-zinc-900 focus:outline-hidden" />
-              
             </div>
+            {discountType === 'percentage' && (
+              <div>
+                <label className="block font-medium text-zinc-700 mb-1">Max Cap ($) (0 = None)</label>
+                <input
+                  id="form-coupon-max-discount"
+                  type="number"
+                  min="0"
+                  value={maxDiscount !== undefined ? maxDiscount : 0}
+                  onChange={(e) => setMaxDiscount && setMaxDiscount(parseFloat(e.target.value) || 0)}
+                  placeholder="e.g. 50"
+                  className="w-full px-3 py-2 border border-zinc-200 rounded-lg text-xs focus:ring-2 focus:ring-zinc-900 focus:outline-hidden" />
+              </div>
+            )}
           </div>
 
           {/* Usage Limit & Customer Tier */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="block font-medium text-zinc-700 mb-1">Total Max Usage Limit</label>
+              <label className="block font-medium text-zinc-700 mb-1">Per-User Limit</label>
               <input
-                id="form-coupon-usage-limit"
+                id="form-coupon-user-limit"
                 type="number"
                 min="1"
                 required
-                value={usageLimit}
-                onChange={(e) => setUsageLimit(parseInt(e.target.value) || 1)}
+                value={usageLimitPerUser}
+                onChange={(e) => setUsageLimitPerUser && setUsageLimitPerUser(parseInt(e.target.value) || 1)}
                 className="w-full px-3 py-2 border border-zinc-200 rounded-lg text-xs focus:ring-2 focus:ring-zinc-900 focus:outline-hidden" />
-              
+              <span className="text-[10px] text-zinc-400">Max uses per user</span>
+            </div>
+            <div>
+              <label className="block font-medium text-zinc-700 mb-1">Total Max Limit</label>
+              <input
+                id="form-coupon-usage-limit"
+                type="number"
+                min="0"
+                required
+                value={usageLimit}
+                onChange={(e) => setUsageLimit(parseInt(e.target.value) || 0)}
+                className="w-full px-3 py-2 border border-zinc-200 rounded-lg text-xs focus:ring-2 focus:ring-zinc-900 focus:outline-hidden" />
+              <span className="text-[10px] text-zinc-400">0 = Unlimited</span>
             </div>
             <div>
               <label className="block font-medium text-zinc-700 mb-1">Customer Eligibility</label>
@@ -204,8 +233,9 @@ export const CouponGeneratorModal = ({
                 
                 <option value="all">All Shoppers</option>
                 <option value="vip">VIP Tier Only</option>
-                <option value="new">First-Time Customers Only</option>
+                <option value="new">First-Time Only</option>
               </select>
+              <span className="text-[10px] text-zinc-400">Target audience</span>
             </div>
           </div>
 
@@ -239,16 +269,23 @@ export const CouponGeneratorModal = ({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-xs font-medium text-zinc-700 bg-zinc-100 hover:bg-zinc-200 rounded-lg transition-colors cursor-pointer">
-              
+              disabled={isSubmitting}
+              className="px-4 py-2 text-xs font-medium text-zinc-700 bg-zinc-100 hover:bg-zinc-200 rounded-lg transition-colors cursor-pointer disabled:opacity-60">
               Cancel
             </button>
             <button
               id="btn-save-coupon-submit"
               type="submit"
-              className="px-4 py-2 text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-xs transition-colors cursor-pointer">
-              
-              Issue Promo Coupon
+              disabled={isSubmitting}
+              className="px-4 py-2 text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-xs transition-colors cursor-pointer disabled:opacity-60 flex items-center gap-1.5">
+              {isSubmitting ? (
+                <>
+                  <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <span>Issuing Promo...</span>
+                </>
+              ) : (
+                'Issue Promo Coupon'
+              )}
             </button>
           </div>
         </form>

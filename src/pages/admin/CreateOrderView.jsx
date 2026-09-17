@@ -27,12 +27,9 @@ import { OrderPaymentSection } from './create-order/OrderPaymentSection';
 import { OrderFinancialSummary } from './create-order/OrderFinancialSummary';
 import { OrderSuccessModal } from './create-order/OrderSuccessModal';
 
-interface CreateOrderViewProps {
-  onBack: () => void;
-  onViewOrders: () => void;
-}
 
-export const CreateOrderView: React.FC<CreateOrderViewProps> = ({
+
+export const CreateOrderView = ({
   onBack,
   onViewOrders,
 }) => {
@@ -99,7 +96,7 @@ export const CreateOrderView: React.FC<CreateOrderViewProps> = ({
   const grandTotal = Math.max(0, subtotal - totalDiscount + shippingRate);
 
   // Line item handlers
-  const handleAddItem = (item: OrderItem) => {
+  const handleAddItem = (item) => {
     setValidationError(null);
     setItems((prev) => {
       const existingIdx = prev.findIndex(
@@ -121,7 +118,7 @@ export const CreateOrderView: React.FC<CreateOrderViewProps> = ({
     }
   };
 
-  const handleUpdateQuantity = (index: number, newQty: number) => {
+  const handleUpdateQuantity = (index, newQty) => {
     if (newQty <= 0) {
       handleRemoveItem(index);
       return;
@@ -133,7 +130,7 @@ export const CreateOrderView: React.FC<CreateOrderViewProps> = ({
     });
   };
 
-  const handleUpdatePrice = (index: number, newPrice: number) => {
+  const handleUpdatePrice = (index, newPrice) => {
     setItems((prev) => {
       const updated = [...prev];
       updated[index] = { ...updated[index], price: newPrice };
@@ -141,7 +138,7 @@ export const CreateOrderView: React.FC<CreateOrderViewProps> = ({
     });
   };
 
-  const handleToggleGift = (index: number) => {
+  const handleToggleGift = (index) => {
     setItems((prev) => {
       const updated = [...prev];
       const target = updated[index];
@@ -161,7 +158,7 @@ export const CreateOrderView: React.FC<CreateOrderViewProps> = ({
     });
   };
 
-  const handleUpdateGiftMessage = (index: number, message: string) => {
+  const handleUpdateGiftMessage = (index, message) => {
     setItems((prev) => {
       const updated = [...prev];
       updated[index] = { ...updated[index], giftMessage: message };
@@ -169,7 +166,7 @@ export const CreateOrderView: React.FC<CreateOrderViewProps> = ({
     });
   };
 
-  const handleRemoveItem = (index: number) => {
+  const handleRemoveItem = (index) => {
     setItems((prev) => prev.filter((_, idx) => idx !== index));
   };
 
@@ -228,7 +225,7 @@ export const CreateOrderView: React.FC<CreateOrderViewProps> = ({
       .filter(Boolean)
       .join(', ');
 
-    const payload: CreateOrderInput = {
+    const payload = {
       customerName: customerName.trim(),
       customerEmail: customerEmail.trim(),
       customerPhone: customerPhone.trim() || undefined,
@@ -263,7 +260,7 @@ export const CreateOrderView: React.FC<CreateOrderViewProps> = ({
 
     if (res.success && res.orderId) {
       // Find the newly inserted order from state or construct display order
-      const newOrderObj: Order = {
+      const newOrderObj = {
         id: res.orderId,
         customerName: payload.customerName,
         customerEmail: payload.customerEmail,

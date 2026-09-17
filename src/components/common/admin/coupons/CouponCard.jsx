@@ -124,7 +124,10 @@ export const CouponCard = ({
               className={`h-full rounded-full transition-all ${
               usagePercent > 90 ? 'bg-amber-500' : 'bg-indigo-600'}`
               } />
-            
+          </div>
+          <div className="flex items-center justify-between text-[10px] text-zinc-400 pt-0.5">
+            <span>Per-user cap:</span>
+            <span className="font-medium text-zinc-600">{coupon.usageLimitPerUser || 1} use{(coupon.usageLimitPerUser || 1) > 1 ? 's' : ''} max</span>
           </div>
         </div>
       </div>
