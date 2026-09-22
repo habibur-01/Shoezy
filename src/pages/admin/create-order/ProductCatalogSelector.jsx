@@ -9,21 +9,15 @@ import {
   XCircle,
 } from 'lucide-react';
 import { useAdmin } from '../../context/AdminContext';
-import { Product, OrderItem } from '../../types';
 
-interface ProductCatalogSelectorProps {
-  onAddItem: (item: OrderItem) => void;
-  selectedItems: OrderItem[];
-}
-
-export const ProductCatalogSelector: React.FC<ProductCatalogSelectorProps> = ({
+export const ProductCatalogSelector = ({
   onAddItem,
   selectedItems,
 }) => {
   const { products, categories } = useAdmin();
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('All');
-  const [recentlyAddedId, setRecentlyAddedId] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [recentlyAddedId, setRecentlyAddedId] = useState(null);
 
   // Filter products
   const filteredProducts = products.filter((p) => {
@@ -40,12 +34,8 @@ export const ProductCatalogSelector: React.FC<ProductCatalogSelectorProps> = ({
     return matchesCategory && matchesSearch;
   });
 
-  const handleAddProduct = (prod: Product, asGift = false) => {
-    const existing = selectedItems.find(
-      (it) => it.productId === prod.id && it.isGift === asGift
-    );
-
-    const newItem: OrderItem = {
+  const handleAddProduct = (prod, asGift = false) => {
+    const newItem = {
       productId: prod.id,
       title: prod.title,
       price: asGift ? 0 : prod.price,
@@ -62,7 +52,7 @@ export const ProductCatalogSelector: React.FC<ProductCatalogSelectorProps> = ({
     setTimeout(() => setRecentlyAddedId(null), 1200);
   };
 
-  const getStockBadge = (stock: number, threshold: number) => {
+  const getStockBadge = (stock, threshold) => {
     if (stock === 0) {
       return (
         <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200">

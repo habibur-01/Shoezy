@@ -8,14 +8,7 @@ import {
   CheckCircle,
 } from 'lucide-react';
 import { useAdmin } from '../context/AdminContext';
-import {
-  CreateOrderInput,
-  OrderItem,
-  OrderStatus,
-  PaymentStatus,
-  SocialOrderSource,
-  Order,
-} from '../types';
+
 import { SourceChannelSelector } from './create-order/SourceChannelSelector';
 import { CustomerInfoForm } from './create-order/CustomerInfoForm';
 import { ProductCatalogSelector } from './create-order/ProductCatalogSelector';
@@ -36,53 +29,53 @@ export const CreateOrderView = ({
   const { hasPermission, createOrder, shippingCarriers, orders } = useAdmin();
 
   // 1. Channel state
-  const [source, setSource] = useState<SocialOrderSource | string>('facebook');
-  const [sourceHandle, setSourceHandle] = useState<string>('');
+  const [source, setSource] = useState('facebook');
+  const [sourceHandle, setSourceHandle] = useState('');
 
   // 2. Customer state
-  const [customerName, setCustomerName] = useState<string>('');
-  const [customerEmail, setCustomerEmail] = useState<string>('');
-  const [customerPhone, setCustomerPhone] = useState<string>('');
-  const [street, setStreet] = useState<string>('');
-  const [city, setCity] = useState<string>('');
-  const [state, setState] = useState<string>('');
-  const [postalCode, setPostalCode] = useState<string>('');
-  const [country, setCountry] = useState<string>('United States');
-  const [internalNotes, setInternalNotes] = useState<string>('');
+  const [customerName, setCustomerName] = useState('');
+  const [customerEmail, setCustomerEmail] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');
+  const [street, setStreet] = useState('');
+  const [city, setCity] = useState('');
+  const [state, setState] = useState('');
+  const [postalCode, setPostalCode] = useState('');
+  const [country, setCountry] = useState('United States');
+  const [internalNotes, setInternalNotes] = useState('');
 
   // 3. Line Items state
-  const [items, setItems] = useState<OrderItem[]>([]);
+  const [items, setItems] = useState([]);
 
   // 4. Gift options state
-  const [isGiftOrder, setIsGiftOrder] = useState<boolean>(false);
-  const [giftMessage, setGiftMessage] = useState<string>('');
-  const [giftWrapping, setGiftWrapping] = useState<boolean>(false);
-  const [hideInvoicePrices, setHideInvoicePrices] = useState<boolean>(false);
+  const [isGiftOrder, setIsGiftOrder] = useState(false);
+  const [giftMessage, setGiftMessage] = useState('');
+  const [giftWrapping, setGiftWrapping] = useState(false);
+  const [hideInvoicePrices, setHideInvoicePrices] = useState(false);
 
   // 5. Logistics / Carrier state
   const initialCarrier = shippingCarriers[0] || {
     name: 'FedEx Express',
     baseRate: 24.5,
   };
-  const [carrier, setCarrier] = useState<string>(initialCarrier.name);
-  const [shippingRate, setShippingRate] = useState<number>(initialCarrier.baseRate);
-  const [trackingNumber, setTrackingNumber] = useState<string>('');
+  const [carrier, setCarrier] = useState(initialCarrier.name);
+  const [shippingRate, setShippingRate] = useState(initialCarrier.baseRate);
+  const [trackingNumber, setTrackingNumber] = useState('');
 
   // 6. Discounts state
-  const [couponCode, setCouponCode] = useState<string>('');
-  const [discount, setDiscount] = useState<number>(0);
-  const [manualDiscount, setManualDiscount] = useState<number>(0);
+  const [couponCode, setCouponCode] = useState('');
+  const [discount, setDiscount] = useState(0);
+  const [manualDiscount, setManualDiscount] = useState(0);
 
   // 7. Payment state
-  const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>('paid');
-  const [paymentMethod, setPaymentMethod] = useState<string>('Facebook Pay');
-  const [fulfillmentStatus, setFulfillmentStatus] = useState<OrderStatus>('processing');
+  const [paymentStatus, setPaymentStatus] = useState('paid');
+  const [paymentMethod, setPaymentMethod] = useState('Facebook Pay');
+  const [fulfillmentStatus, setFulfillmentStatus] = useState('processing');
 
   // Submission & Modal state
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [validationError, setValidationError] = useState<string | null>(null);
-  const [createdOrder, setCreatedOrder] = useState<Order | null>(null);
-  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState<boolean>(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [validationError, setValidationError] = useState(null);
+  const [createdOrder, setCreatedOrder] = useState(null);
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
 
   // Permission verification
   const canCreate = hasPermission('orders.create');

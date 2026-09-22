@@ -9,17 +9,8 @@ import {
   Gift,
   ExternalLink,
 } from 'lucide-react';
-import { Order } from '../../types';
 
-interface OrderSuccessModalProps {
-  order: Order | null;
-  isOpen: boolean;
-  onClose: () => void;
-  onViewOrderTracking: () => void;
-  onCreateAnother: () => void;
-}
-
-export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
+export const OrderSuccessModal = ({
   order,
   isOpen,
   onClose,

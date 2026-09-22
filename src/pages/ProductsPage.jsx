@@ -46,7 +46,7 @@ const COLORS = [
 
 const SIZES = ["38", "39", "40", "41", "42", "43", "44", "45", "XS", "S", "M", "L", "XL", "XXL"];
 
-const ShopPage = () => {
+const ProductsPage = () => {
   const [viewMode, setViewMode] = useState("grid");
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [totalProductsCount, setTotalProductsCount] = useState(0);
@@ -407,4 +407,4 @@ const ShopPage = () => {
   );
 };
 
-export default ShopPage;
+export default ProductsPage;

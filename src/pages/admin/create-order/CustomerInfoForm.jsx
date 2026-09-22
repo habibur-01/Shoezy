@@ -9,30 +9,8 @@ import {
   ClipboardList,
 } from 'lucide-react';
 import { useAdmin } from '../../context/AdminContext';
-import { CustomerAnalytics } from '../../types';
 
-interface CustomerInfoFormProps {
-  customerName: string;
-  setCustomerName: (val: string) => void;
-  customerEmail: string;
-  setCustomerEmail: (val: string) => void;
-  customerPhone: string;
-  setCustomerPhone: (val: string) => void;
-  street: string;
-  setStreet: (val: string) => void;
-  city: string;
-  setCity: (val: string) => void;
-  state: string;
-  setState: (val: string) => void;
-  postalCode: string;
-  setPostalCode: (val: string) => void;
-  country: string;
-  setCountry: (val: string) => void;
-  internalNotes: string;
-  setInternalNotes: (val: string) => void;
-}
-
-export const CustomerInfoForm: React.FC<CustomerInfoFormProps> = ({
+export const CustomerInfoForm = ({
   customerName,
   setCustomerName,
   customerEmail,
@@ -63,7 +41,7 @@ export const CustomerInfoForm: React.FC<CustomerInfoFormProps> = ({
       c.email.toLowerCase().includes(customerSearch.toLowerCase())
   );
 
-  const handleSelectCustomer = (c: CustomerAnalytics) => {
+  const handleSelectCustomer = (c) => {
     setCustomerName(c.name);
     setCustomerEmail(c.email);
     setCity(c.city);

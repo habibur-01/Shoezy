@@ -1,14 +1,7 @@
 import React, { useState } from 'react';
 import { Truck, X, PlusCircle } from 'lucide-react';
-import { ShippingCarrierOption } from '../../types';
 
-interface AddCustomCarrierModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onAddCarrier: (carrier: Omit<ShippingCarrierOption, 'id'>) => void;
-}
-
-export const AddCustomCarrierModal: React.FC<AddCustomCarrierModalProps> = ({
+export const AddCustomCarrierModal = ({
   isOpen,
   onClose,
   onAddCarrier,
@@ -21,7 +14,7 @@ export const AddCustomCarrierModal: React.FC<AddCustomCarrierModalProps> = ({
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     if (!carrierName.trim()) return;
 

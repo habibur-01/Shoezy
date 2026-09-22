@@ -1,18 +1,7 @@
 import React from 'react';
 import { Gift, Heart, Sparkles, FileText, Check } from 'lucide-react';
 
-interface GiftWrappingSectionProps {
-  isGiftOrder: boolean;
-  setIsGiftOrder: (val: boolean) => void;
-  giftMessage: string;
-  setGiftMessage: (val: string) => void;
-  giftWrapping: boolean;
-  setGiftWrapping: (val: boolean) => void;
-  hideInvoicePrices: boolean;
-  setHideInvoicePrices: (val: boolean) => void;
-}
-
-export const GiftWrappingSection: React.FC<GiftWrappingSectionProps> = ({
+export const GiftWrappingSection = ({
   isGiftOrder,
   setIsGiftOrder,
   giftMessage,

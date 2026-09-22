@@ -9,17 +9,7 @@ import {
 } from 'lucide-react';
 import { useAdmin } from '../../context/AdminContext';
 
-interface CouponAndDiscountSectionProps {
-  subtotal: number;
-  couponCode: string;
-  setCouponCode: (code: string) => void;
-  discount: number;
-  setDiscount: (amount: number) => void;
-  manualDiscount: number;
-  setManualDiscount: (val: number) => void;
-}
-
-export const CouponAndDiscountSection: React.FC<CouponAndDiscountSectionProps> = ({
+export const CouponAndDiscountSection = ({
   subtotal,
   couponCode,
   setCouponCode,
@@ -30,8 +20,8 @@ export const CouponAndDiscountSection: React.FC<CouponAndDiscountSectionProps> =
 }) => {
   const { coupons } = useAdmin();
   const [inputCode, setInputCode] = useState(couponCode || '');
-  const [couponError, setCouponError] = useState<string | null>(null);
-  const [appliedMessage, setAppliedMessage] = useState<string | null>(
+  const [couponError, setCouponError] = useState(null);
+  const [appliedMessage, setAppliedMessage] = useState(
     couponCode ? `Coupon ${couponCode} active` : null
   );
 
@@ -40,7 +30,7 @@ export const CouponAndDiscountSection: React.FC<CouponAndDiscountSectionProps> =
     (c) => c.status === 'active' && new Date(c.expiryDate) > new Date()
   );
 
-  const applyCode = (codeToApply: string) => {
+  const applyCode = (codeToApply) => {
     setCouponError(null);
     const trimmed = codeToApply.trim().toUpperCase();
     if (!trimmed) {

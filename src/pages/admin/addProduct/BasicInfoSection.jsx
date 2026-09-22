@@ -19,6 +19,7 @@ export const BasicInfoSection = ({
   setTitle,
   brand,
   setBrand,
+  brandsList = [],
   barcode,
   setBarcode,
   description,
@@ -77,17 +78,24 @@ export const BasicInfoSection = ({
         {/* Brand and Barcode */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-semibold text-zinc-800 mb-1">
-              Brand / Manufacturer
-            </label>
-            <input
-              type="text"
-              id="input-product-brand"
-              placeholder="e.g. Sony, Apple, Nike, Herman Miller"
-              value={brand}
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-xs font-semibold text-zinc-800">
+                Brand / Manufacturer
+              </label>
+              <span className="text-[10px] text-zinc-400">Linked Brand</span>
+            </div>
+            <select
+              id="select-product-brand"
+              value={brand || 'others'}
               onChange={(e) => setBrand(e.target.value)}
-              className="w-full px-3 py-2 text-xs bg-zinc-50 border border-zinc-200 rounded-lg text-zinc-900 focus:outline-hidden focus:ring-2 focus:ring-zinc-900 focus:bg-white" />
-            
+              className="w-full px-3 py-2 text-xs bg-zinc-50 border border-zinc-200 rounded-lg text-zinc-900 focus:outline-hidden focus:ring-2 focus:ring-zinc-900 focus:bg-white cursor-pointer">
+              <option value="others">🏷️ Others (Default / Unbranded)</option>
+              {brandsList && brandsList.map((b) => (
+                <option key={b._id || b.id} value={b._id || b.id}>
+                  {b.logo ? `${b.logo} ` : ''}{b.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div>

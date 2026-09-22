@@ -7,30 +7,8 @@ import {
   RotateCcw,
   Sparkles,
 } from 'lucide-react';
-import { OrderItem, SocialOrderSource } from '../../types';
 
-interface OrderFinancialSummaryProps {
-  items: OrderItem[];
-  subtotal: number;
-  discount: number;
-  manualDiscount: number;
-  couponCode?: string;
-  shippingRate: number;
-  carrier: string;
-  source: SocialOrderSource | string;
-  sourceHandle?: string;
-  isGiftOrder: boolean;
-  total: number;
-  customerName: string;
-  customerEmail: string;
-  isSubmitting: boolean;
-  validationError: string | null;
-  onSubmit: () => void;
-  onReset: () => void;
-  onCancel: () => void;
-}
-
-export const OrderFinancialSummary: React.FC<OrderFinancialSummaryProps> = ({
+export const OrderFinancialSummary = ({
   items,
   subtotal,
   discount,

@@ -126,7 +126,7 @@ const ShopProductCard = ({ product, viewMode }) => {
       >
         <div className="flex-1 min-w-0">
           <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1 block">
-            {product?.brand || "Brand"}
+            {product?.brand?.name || product?.brandName || (typeof product?.brand === 'string' ? product.brand : "Brand")}
           </span>
           <Link to={`/products/${categorySlug}/${subCategorySlug}/${product?.slug}`}>
             <h3 className="font-semibold text-stone-900 text-sm sm:text-base mb-1.5 line-clamp-2 hover:text-red-600 transition-colors cursor-pointer">

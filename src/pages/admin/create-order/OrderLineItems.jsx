@@ -9,20 +9,9 @@ import {
   Tag,
   AlertCircle,
 } from 'lucide-react';
-import { OrderItem } from '../../types';
 import { useAdmin } from '../../context/AdminContext';
 
-interface OrderLineItemsProps {
-  items: OrderItem[];
-  onUpdateQuantity: (index: number, newQty: number) => void;
-  onUpdatePrice: (index: number, newPrice: number) => void;
-  onToggleGift: (index: number) => void;
-  onUpdateGiftMessage: (index: number, message: string) => void;
-  onRemoveItem: (index: number) => void;
-  onAddCustomItem: (item: OrderItem) => void;
-}
-
-export const OrderLineItems: React.FC<OrderLineItemsProps> = ({
+export const OrderLineItems = ({
   items,
   onUpdateQuantity,
   onUpdatePrice,
@@ -38,14 +27,14 @@ export const OrderLineItems: React.FC<OrderLineItemsProps> = ({
   const [customQty, setCustomQty] = useState('1');
   const [customIsGift, setCustomIsGift] = useState(false);
 
-  const handleCreateCustomItem = (e: React.FormEvent) => {
+  const handleCreateCustomItem = (e) => {
     e.preventDefault();
     if (!customTitle.trim()) return;
 
     const priceNum = Math.max(0, parseFloat(customPrice) || 0);
     const qtyNum = Math.max(1, parseInt(customQty, 10) || 1);
 
-    const newItem: OrderItem = {
+    const newItem = {
       productId: `custom_${Date.now()}`,
       title: customTitle.trim(),
       price: customIsGift ? 0 : priceNum,

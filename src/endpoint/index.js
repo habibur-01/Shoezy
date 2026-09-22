@@ -80,3 +80,18 @@ export const ADMIN_COUPONS_ENDPOINT = "/api/admin/coupon";
 // Admin Roles & Permissions RBAC
 export const ADMIN_ROLES_ENDPOINT = "/api/admin/roles";
 export const ADMIN_ROLES_STAFF_ENDPOINT = "/api/admin/roles/staff";
+
+// Admin Brands
+export const ADMIN_BRAND_ENDPOINT = "/api/admin/brand";
+export const ADMIN_BRAND_ADD_ENDPOINT = "/api/admin/brand/add";
+
+// CMS Homepage Sections
+export const PUBLIC_HOMEPAGE_SECTIONS_ENDPOINT = "/api/cms/homepage-sections";
+export const ADMIN_CMS_HOMEPAGE_SECTIONS_ENDPOINT = "/api/cms/admin/homepage-sections";
+export const ADMIN_CMS_REORDER_SECTIONS_ENDPOINT = "/api/cms/admin/homepage-sections/reorder";
+
+// CMS Custom Pages & Page Builder
+export const PUBLIC_PAGES_ENDPOINT = "/api/cms/pages";
+export const ADMIN_PAGES_ENDPOINT = "/api/cms/admin/pages";
+
+

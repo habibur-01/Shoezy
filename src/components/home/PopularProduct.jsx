@@ -4,11 +4,16 @@ import Container from "../common/Container/Container";
 import ProductCard from "../common/product/ProductCard";
 import { products } from "../../../public/data";
 
-const PopularProduct = () => {
+const PopularProduct = ({ title = "Popular Product", subtitle }) => {
   return (
     <div>
       <Container>
-        <TitleSection title={"Popular Product"} />
+        <TitleSection title={title || "Popular Product"} />
+        {subtitle && (
+          <p className="text-center text-sm text-zinc-500 -mt-6 mb-8 max-w-xl mx-auto">
+            {subtitle}
+          </p>
+        )}
         <div className="grid grid-cols-4 gap-8">
           {products.map((product) => (
             <ProductCard key={product?.id} item={product} />

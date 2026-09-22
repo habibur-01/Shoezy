@@ -1,62 +1,80 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { Link } from 'react-router-dom';
 import { LayoutDashboard, Package, Layers, Tag, Boxes, ShoppingCart, CreditCard, Users, Star, TicketPercent, Percent, Gift, FileText, Image as ImageIcon, LayoutGrid, Menu, ImagePlus, ShieldCheck, FileClock, BarChart3, Settings, ChevronDown, ChevronRight, ChevronsLeft, ChevronsRight, Megaphone, } from 'lucide-react';
 import { useAdmin } from '../context/AdminContext';
 import { SidebarHeader } from './sidebar/SidebarHeader';
 import { SidebarUserProfile } from './sidebar/SidebarUserProfile';
 const productSubItems = [
-    { id: 'products', label: 'All Products' },
-    { id: 'add_product', label: 'Add Product' },
+    { id: 'products', label: 'All Products', to: '/admin/products' },
+    { id: 'add_product', label: 'Add Product', to: '/admin/add_product' },
     {
         id: 'product_variants',
         label: 'Product Variants',
+        to: '/admin/product_variants',
         badge: (<span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[9px] font-bold px-1.5 py-0.2 rounded-full">
         New
       </span>),
     },
 ];
 const orderSubItems = [
-    { id: 'orders', label: 'All Orders' },
-    { id: 'create_order', label: 'Create Order' },
-    { id: 'returns_refunds', label: 'Returns & Refunds' },
+    { id: 'orders', label: 'All Orders', to: '/admin/orders' },
+    { id: 'create_order', label: 'Create Order', to: '/admin/create_order' },
+    { id: 'returns_refunds', label: 'Returns & Refunds', to: '/admin/returns_refunds' },
 ];
 const customerSubItems = [
-    { id: 'customers', label: 'All Customers' },
-    { id: 'customer_analytics', label: 'Customer Analytics' },
+    { id: 'customers', label: 'All Customers', to: '/admin/customers' },
+    { id: 'customer_analytics', label: 'Customer Analytics', to: '/admin/customer_analytics' },
 ];
 const reportSubItems = [
-    { id: 'reports_sales', label: 'Sales Report' },
-    { id: 'reports_orders', label: 'Order Report' },
-    { id: 'reports_products', label: 'Product Report' },
-    { id: 'reports_inventory', label: 'Inventory Report' },
-    { id: 'reports_customers', label: 'Customer Report' },
-    { id: 'reports_payments', label: 'Payment Report' },
-    { id: 'reports_coupons', label: 'Coupon / Discount Report' },
+    { id: 'reports_sales', label: 'Sales Report', to: '/admin/reports_sales' },
+    { id: 'reports_orders', label: 'Order Report', to: '/admin/reports_orders' },
+    { id: 'reports_products', label: 'Product Report', to: '/admin/reports_products' },
+    { id: 'reports_inventory', label: 'Inventory Report', to: '/admin/reports_inventory' },
+    { id: 'reports_customers', label: 'Customer Report', to: '/admin/reports_customers' },
+    { id: 'reports_payments', label: 'Payment Report', to: '/admin/reports_payments' },
+    { id: 'reports_coupons', label: 'Coupon / Discount Report', to: '/admin/reports_coupons' },
 ];
 const storeSettingsSubItems = [
-    { id: 'settings_store_info', label: 'Store Information' },
-    { id: 'settings_tax', label: 'Tax' },
-    { id: 'settings_currency', label: 'Currency' },
-    { id: 'settings_shipping', label: 'Shipping' },
-    { id: 'settings_payment_methods', label: 'Payment Methods' },
-    { id: 'settings_notifications', label: 'Notification Settings' },
+    { id: 'settings_store_info', label: 'Store Information', to: '/admin/settings_store_info' },
+    { id: 'settings_tax', label: 'Tax', to: '/admin/settings_tax' },
+    { id: 'settings_currency', label: 'Currency', to: '/admin/settings_currency' },
+    { id: 'settings_shipping', label: 'Shipping', to: '/admin/settings_shipping' },
+    { id: 'settings_payment_methods', label: 'Payment Methods', to: '/admin/settings_payment_methods' },
+    { id: 'settings_notifications', label: 'Notification Settings', to: '/admin/settings_notifications' },
 ];
-const NavItem = ({ id, icon: Icon, label, isActive, isCollapsed, badge, onClick, onMouseEnter, onMouseLeave, }) => {
-    return (<button id={id} onClick={onClick} onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave} className={`w-full h-10 flex items-center px-2.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer relative overflow-hidden shrink-0 ${isActive
-            ? 'bg-indigo-600 text-white shadow-xs'
-            : 'text-slate-400 hover:text-white hover:bg-slate-800/60'}`}>
-      {/* Fixed Icon container: isolated from label and badge, NEVER gets squashed or clipped */}
-      <div className="w-7 h-7 flex items-center justify-center shrink-0">
-        <Icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-white' : 'text-slate-400'}`}/>
-      </div>
+const NavItem = ({ id, icon: Icon, label, isActive, isCollapsed, badge, onClick, onMouseEnter, onMouseLeave, to }) => {
+    const content = (
+      <>
+        {/* Fixed Icon container: isolated from label and badge, NEVER gets squashed or clipped */}
+        <div className="w-7 h-7 flex items-center justify-center shrink-0">
+          <Icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-white' : 'text-slate-400'}`}/>
+        </div>
 
-      {/* Label and Badge Container: smoothly vanishes right-to-left when collapsed */}
-      <div className={`flex items-center justify-between min-w-0 transition-all duration-500 ease-in-out ${isCollapsed
-            ? 'opacity-0 pointer-events-none max-w-0 ml-0 -translate-x-3 overflow-hidden'
-            : 'opacity-100 max-w-full flex-1 ml-3 translate-x-0'}`}>
-        <span className="truncate whitespace-nowrap">{label}</span>
-        {badge && <div className="shrink-0 ml-2">{badge}</div>}
-      </div>
+        {/* Label and Badge Container: smoothly vanishes right-to-left when collapsed */}
+        <div className={`flex items-center justify-between min-w-0 transition-all duration-500 ease-in-out ${isCollapsed
+              ? 'opacity-0 pointer-events-none max-w-0 ml-0 -translate-x-3 overflow-hidden'
+              : 'opacity-100 max-w-full flex-1 ml-3 translate-x-0'}`}>
+          <span className="truncate whitespace-nowrap">{label}</span>
+          {badge && <div className="shrink-0 ml-2">{badge}</div>}
+        </div>
+      </>
+    );
+
+    const className = `w-full h-10 flex items-center px-2.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer relative overflow-hidden shrink-0 ${isActive
+            ? 'bg-indigo-600 text-white shadow-xs'
+            : 'text-slate-400 hover:text-white hover:bg-slate-800/60'}`;
+
+    if (to) {
+        return (
+            <Link id={id} to={to} onClick={onClick} onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave} className={className}>
+                {content}
+            </Link>
+        );
+    }
+
+    return (<button id={id} onClick={onClick} onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave} className={className}>
+      {content}
     </button>);
 };
 const NavGroup = ({ id, icon: Icon, label, isGroupActive, isExpanded, isCollapsed, badge, onToggle, onMouseEnter, onMouseLeave, children, }) => {
@@ -89,18 +107,35 @@ const NavGroup = ({ id, icon: Icon, label, isGroupActive, isExpanded, isCollapse
       </div>
     </div>);
 };
-const NavSubItem = ({ id, label, isActive, badge, onClick }) => {
-    return (<button id={id} onClick={onClick} className={`w-full flex items-center justify-between py-1.5 px-3 rounded-md text-xs transition-colors cursor-pointer ${isActive ? 'text-white font-semibold bg-slate-800/80' : 'text-slate-400 hover:text-white'}`}>
-      <div className="flex items-center gap-2 min-w-0">
-        <span className="text-slate-400 font-bold">•</span>
-        <span className="truncate">{label}</span>
-      </div>
-      {badge}
+const NavSubItem = ({ id, label, isActive, badge, onClick, to }) => {
+    const content = (
+      <>
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="text-slate-400 font-bold">•</span>
+          <span className="truncate">{label}</span>
+        </div>
+        {badge}
+      </>
+    );
+
+    const className = `w-full flex items-center justify-between py-1.5 px-3 rounded-md text-xs transition-colors cursor-pointer ${isActive ? 'text-white font-semibold bg-slate-800/80' : 'text-slate-400 hover:text-white'}`;
+
+    if (to) {
+        return (
+            <Link id={id} to={to} onClick={onClick} className={className}>
+                {content}
+            </Link>
+        );
+    }
+
+    return (<button id={id} onClick={onClick} className={className}>
+      {content}
     </button>);
 };
 const NavSectionHeader = ({ title, isCollapsed, }) => (<div className={`px-3 text-[10px] font-bold uppercase tracking-wider text-slate-500 whitespace-nowrap overflow-hidden transition-all duration-500 ease-in-out ${isCollapsed ? 'hidden' : 'h-6 pt-2 pb-1 opacity-100'}`}>
     {title}
   </div>);
+
 // --- Primary Sidebar Component ---
 export const Sidebar = ({ activeTab, setActiveTab, isCollapsed: externalIsCollapsed, setIsCollapsed: externalSetIsCollapsed, }) => {
     const { metrics, currentRole, currentUser, logout } = useAdmin();
@@ -131,6 +166,21 @@ export const Sidebar = ({ activeTab, setActiveTab, isCollapsed: externalIsCollap
             setFlyout(null);
         }
     }, [isCollapsed]);
+
+    // Auto-expand parent groups when a child route is active
+    useEffect(() => {
+        if (['products', 'add_product', 'product_variants'].includes(activeTab)) {
+            setExpandedMenus((prev) => ({ ...prev, products: true }));
+        } else if (['orders', 'create_order', 'returns_refunds'].includes(activeTab)) {
+            setExpandedMenus((prev) => ({ ...prev, orders: true }));
+        } else if (['customers', 'customer_analytics'].includes(activeTab)) {
+            setExpandedMenus((prev) => ({ ...prev, customers: true }));
+        } else if (activeTab && activeTab.startsWith('report')) {
+            setExpandedMenus((prev) => ({ ...prev, reports: true }));
+        } else if (activeTab && (activeTab.startsWith('settings_') || activeTab === 'store_settings')) {
+            setExpandedMenus((prev) => ({ ...prev, store_settings: true }));
+        }
+    }, [activeTab]);
     const handleItemMouseEnter = (key, title, icon, e, items, badge) => {
         if (!isCollapsed)
             return;
@@ -186,12 +236,12 @@ export const Sidebar = ({ activeTab, setActiveTab, isCollapsed: externalIsCollap
         {/* Brand Header */}
         <SidebarHeader isCollapsed={isCollapsed} onToggleCollapse={toggleCollapse}/>
 
-        {/* Scrollable Navigation Menu - scrollbar hidden to ensure icons are 100% visible with no overlapping */}
-        <nav onScroll={() => setFlyout(null)} className={`p-2.5 overflow-y-auto overflow-x-hidden flex-1 overscroll-contain text-xs [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden ${isCollapsed ? 'space-y-1' : 'space-y-3.5'} transition-all duration-500`}>
+        {/* Scrollable Navigation Menu - 1px ultra-thin scrollbar, hidden by default, shown on hover if scrollable */}
+        <nav onScroll={() => setFlyout(null)} className={`p-2.5 overflow-y-auto overflow-x-hidden flex-1 overscroll-contain text-xs sidebar-scrollbar ${isCollapsed ? 'space-y-1' : 'space-y-3.5'} transition-all duration-500`}>
           {/* ================= SECTION 1: OVERVIEW ================= */}
           <div className="space-y-1">
             <NavSectionHeader title="OVERVIEW" isCollapsed={isCollapsed}/>
-            <NavItem id="nav-dashboard" icon={LayoutDashboard} label="Dashboard" isActive={activeTab === 'dashboard'} isCollapsed={isCollapsed} onClick={() => {
+            <NavItem id="nav-dashboard" to="/admin/dashboard" icon={LayoutDashboard} label="Dashboard" isActive={activeTab === 'dashboard'} isCollapsed={isCollapsed} onClick={() => {
             setActiveTab('dashboard');
             setFlyout(null);
         }} onMouseEnter={(e) => handleItemMouseEnter('dashboard', 'Dashboard', LayoutDashboard, e)} onMouseLeave={handleItemMouseLeave}/>
@@ -210,27 +260,27 @@ export const Sidebar = ({ activeTab, setActiveTab, isCollapsed: externalIsCollap
                 toggleSubmenu('products');
             }
         }} onMouseEnter={(e) => handleItemMouseEnter('products', 'Products', Package, e, productSubItems)} onMouseLeave={handleItemMouseLeave}>
-              <NavSubItem id="nav-all-products" label="All Products" isActive={activeTab === 'products'} onClick={() => setActiveTab('products')}/>
-              <NavSubItem id="nav-add-product" label="Add Product" isActive={activeTab === 'add_product'} onClick={() => setActiveTab('add_product')}/>
-              <NavSubItem id="nav-product-variants" label="Product Variants" isActive={activeTab === 'product_variants'} badge={<span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[9px] font-bold px-1.5 py-0.2 rounded-full">
+              <NavSubItem id="nav-all-products" to="/admin/products" label="All Products" isActive={activeTab === 'products'} onClick={() => setActiveTab('products')}/>
+              <NavSubItem id="nav-add-product" to="/admin/add_product" label="Add Product" isActive={activeTab === 'add_product'} onClick={() => setActiveTab('add_product')}/>
+              <NavSubItem id="nav-product-variants" to="/admin/product_variants" label="Product Variants" isActive={activeTab === 'product_variants'} badge={<span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[9px] font-bold px-1.5 py-0.2 rounded-full">
                     New
                   </span>} onClick={() => setActiveTab('product_variants')}/>
             </NavGroup>
 
             {/* Categories */}
-            <NavItem id="nav-categories" icon={Layers} label="Categories" isActive={activeTab === 'categories'} isCollapsed={isCollapsed} onClick={() => {
+            <NavItem id="nav-categories" to="/admin/categories" icon={Layers} label="Categories" isActive={activeTab === 'categories'} isCollapsed={isCollapsed} onClick={() => {
             setActiveTab('categories');
             setFlyout(null);
         }} onMouseEnter={(e) => handleItemMouseEnter('categories', 'Categories', Layers, e)} onMouseLeave={handleItemMouseLeave}/>
 
             {/* Brands */}
-            <NavItem id="nav-brands" icon={Tag} label="Brands" isActive={activeTab === 'brands'} isCollapsed={isCollapsed} onClick={() => {
+            <NavItem id="nav-brands" to="/admin/brands" icon={Tag} label="Brands" isActive={activeTab === 'brands'} isCollapsed={isCollapsed} onClick={() => {
             setActiveTab('brands');
             setFlyout(null);
         }} onMouseEnter={(e) => handleItemMouseEnter('brands', 'Brands', Tag, e)} onMouseLeave={handleItemMouseLeave}/>
 
             {/* Inventory */}
-            <NavItem id="nav-inventory" icon={Boxes} label="Inventory" isActive={activeTab === 'inventory'} isCollapsed={isCollapsed} badge={<span className="bg-rose-950/90 text-rose-300 border border-rose-800/80 text-[10px] font-medium px-2 py-0.5 rounded-full">
+            <NavItem id="nav-inventory" to="/admin/inventory" icon={Boxes} label="Inventory" isActive={activeTab === 'inventory'} isCollapsed={isCollapsed} badge={<span className="bg-rose-950/90 text-rose-300 border border-rose-800/80 text-[10px] font-medium px-2 py-0.5 rounded-full">
                   Low Stock {metrics.lowStockCount || 3}
                 </span>} onClick={() => {
             setActiveTab('inventory');
@@ -259,15 +309,15 @@ export const Sidebar = ({ activeTab, setActiveTab, isCollapsed: externalIsCollap
         }} onMouseEnter={(e) => handleItemMouseEnter('orders', 'Orders', ShoppingCart, e, orderSubItems, <span className="bg-blue-600 text-white text-[10px] font-bold px-1.5 py-0.2 rounded-md shadow-2xs">
                     5
                   </span>)} onMouseLeave={handleItemMouseLeave}>
-              <NavSubItem id="nav-all-orders" label="All Orders" isActive={activeTab === 'orders'} badge={<span className="bg-blue-600 text-white text-[10px] font-bold px-1.5 py-0.2 rounded-md shadow-2xs">
+              <NavSubItem id="nav-all-orders" to="/admin/orders" label="All Orders" isActive={activeTab === 'orders'} badge={<span className="bg-blue-600 text-white text-[10px] font-bold px-1.5 py-0.2 rounded-md shadow-2xs">
                     5
                   </span>} onClick={() => setActiveTab('orders')}/>
-              <NavSubItem id="nav-create-order" label="Create Order" isActive={activeTab === 'create_order'} onClick={() => setActiveTab('create_order')}/>
-              <NavSubItem id="nav-returns-refunds" label="Returns & Refunds" isActive={activeTab === 'returns_refunds'} onClick={() => setActiveTab('returns_refunds')}/>
+              <NavSubItem id="nav-create-order" to="/admin/create_order" label="Create Order" isActive={activeTab === 'create_order'} onClick={() => setActiveTab('create_order')}/>
+              <NavSubItem id="nav-returns-refunds" to="/admin/returns_refunds" label="Returns & Refunds" isActive={activeTab === 'returns_refunds'} onClick={() => setActiveTab('returns_refunds')}/>
             </NavGroup>
 
             {/* Transactions */}
-            <NavItem id="nav-transactions" icon={CreditCard} label="Transactions" isActive={activeTab === 'transactions'} isCollapsed={isCollapsed} onClick={() => {
+            <NavItem id="nav-transactions" to="/admin/transactions" icon={CreditCard} label="Transactions" isActive={activeTab === 'transactions'} isCollapsed={isCollapsed} onClick={() => {
             setActiveTab('transactions');
             setFlyout(null);
         }} onMouseEnter={(e) => handleItemMouseEnter('transactions', 'Transactions', CreditCard, e)} onMouseLeave={handleItemMouseLeave}/>
@@ -286,12 +336,12 @@ export const Sidebar = ({ activeTab, setActiveTab, isCollapsed: externalIsCollap
                 toggleSubmenu('customers');
             }
         }} onMouseEnter={(e) => handleItemMouseEnter('customers', 'Customers', Users, e, customerSubItems)} onMouseLeave={handleItemMouseLeave}>
-              <NavSubItem id="nav-all-customers" label="All Customers" isActive={activeTab === 'customers'} onClick={() => setActiveTab('customers')}/>
-              <NavSubItem id="nav-customer-analytics" label="Customer Analytics" isActive={activeTab === 'customer_analytics'} onClick={() => setActiveTab('customer_analytics')}/>
+              <NavSubItem id="nav-all-customers" to="/admin/customers" label="All Customers" isActive={activeTab === 'customers'} onClick={() => setActiveTab('customers')}/>
+              <NavSubItem id="nav-customer-analytics" to="/admin/customer_analytics" label="Customer Analytics" isActive={activeTab === 'customer_analytics'} onClick={() => setActiveTab('customer_analytics')}/>
             </NavGroup>
 
             {/* Reviews */}
-            <NavItem id="nav-reviews" icon={Star} label="Reviews" isActive={activeTab === 'reviews'} isCollapsed={isCollapsed} badge={<span className="bg-amber-600 text-white text-[10px] font-bold px-1.5 py-0.2 rounded-md shadow-2xs">
+            <NavItem id="nav-reviews" to="/admin/reviews" icon={Star} label="Reviews" isActive={activeTab === 'reviews'} isCollapsed={isCollapsed} badge={<span className="bg-amber-600 text-white text-[10px] font-bold px-1.5 py-0.2 rounded-md shadow-2xs">
                   8
                 </span>} onClick={() => {
             setActiveTab('reviews');
@@ -306,7 +356,7 @@ export const Sidebar = ({ activeTab, setActiveTab, isCollapsed: externalIsCollap
             <NavSectionHeader title="PROMOTIONS & MARKETING" isCollapsed={isCollapsed}/>
 
             {/* Coupons */}
-            <NavItem id="nav-coupons" icon={TicketPercent} label="Coupons" isActive={activeTab === 'coupons'} isCollapsed={isCollapsed} badge={<span className="bg-emerald-600 text-white text-[10px] font-bold px-1.5 py-0.2 rounded-md shadow-2xs">
+            <NavItem id="nav-coupons" to="/admin/coupons" icon={TicketPercent} label="Coupons" isActive={activeTab === 'coupons'} isCollapsed={isCollapsed} badge={<span className="bg-emerald-600 text-white text-[10px] font-bold px-1.5 py-0.2 rounded-md shadow-2xs">
                   4
                 </span>} onClick={() => {
             setActiveTab('coupons');
@@ -316,13 +366,13 @@ export const Sidebar = ({ activeTab, setActiveTab, isCollapsed: externalIsCollap
                   </span>)} onMouseLeave={handleItemMouseLeave}/>
 
             {/* Discounts & Offers */}
-            <NavItem id="nav-discounts-offers" icon={Percent} label="Discounts & Offers" isActive={activeTab === 'discounts_offers'} isCollapsed={isCollapsed} onClick={() => {
+            <NavItem id="nav-discounts-offers" to="/admin/discounts_offers" icon={Percent} label="Discounts & Offers" isActive={activeTab === 'discounts_offers'} isCollapsed={isCollapsed} onClick={() => {
             setActiveTab('discounts_offers');
             setFlyout(null);
         }} onMouseEnter={(e) => handleItemMouseEnter('discounts_offers', 'Discounts & Offers', Percent, e)} onMouseLeave={handleItemMouseLeave}/>
 
             {/* Campaigns */}
-            <NavItem id="nav-campaigns" icon={Gift} label="Campaigns" isActive={activeTab === 'campaigns'} isCollapsed={isCollapsed} onClick={() => {
+            <NavItem id="nav-campaigns" to="/admin/campaigns" icon={Gift} label="Campaigns" isActive={activeTab === 'campaigns'} isCollapsed={isCollapsed} onClick={() => {
             setActiveTab('campaigns');
             setFlyout(null);
         }} onMouseEnter={(e) => handleItemMouseEnter('campaigns', 'Campaigns', Gift, e)} onMouseLeave={handleItemMouseLeave}/>
@@ -332,27 +382,27 @@ export const Sidebar = ({ activeTab, setActiveTab, isCollapsed: externalIsCollap
           <div className="space-y-1">
             <NavSectionHeader title="CONTENT (CMS)" isCollapsed={isCollapsed}/>
 
-            <NavItem id="nav-cms-pages" icon={FileText} label="Pages" isActive={activeTab === 'cms_pages'} isCollapsed={isCollapsed} onClick={() => {
+            <NavItem id="nav-cms-pages" to="/admin/cms_pages" icon={FileText} label="Pages" isActive={activeTab === 'cms_pages' || activeTab === 'cms'} isCollapsed={isCollapsed} onClick={() => {
             setActiveTab('cms_pages');
             setFlyout(null);
         }} onMouseEnter={(e) => handleItemMouseEnter('cms_pages', 'Pages', FileText, e)} onMouseLeave={handleItemMouseLeave}/>
 
-            <NavItem id="nav-cms-banners" icon={ImageIcon} label="Banners" isActive={activeTab === 'cms_banners'} isCollapsed={isCollapsed} onClick={() => {
+            <NavItem id="nav-cms-banners" to="/admin/cms_banners" icon={ImageIcon} label="Banners" isActive={activeTab === 'cms_banners'} isCollapsed={isCollapsed} onClick={() => {
             setActiveTab('cms_banners');
             setFlyout(null);
         }} onMouseEnter={(e) => handleItemMouseEnter('cms_banners', 'Banners', ImageIcon, e)} onMouseLeave={handleItemMouseLeave}/>
 
-            <NavItem id="nav-cms-homepage-sections" icon={LayoutGrid} label="Homepage Sections" isActive={activeTab === 'cms_homepage_sections'} isCollapsed={isCollapsed} onClick={() => {
+            <NavItem id="nav-cms-homepage-sections" to="/admin/cms_homepage_sections" icon={LayoutGrid} label="Homepage Sections" isActive={activeTab === 'cms_homepage_sections'} isCollapsed={isCollapsed} onClick={() => {
             setActiveTab('cms_homepage_sections');
             setFlyout(null);
         }} onMouseEnter={(e) => handleItemMouseEnter('cms_homepage_sections', 'Homepage Sections', LayoutGrid, e)} onMouseLeave={handleItemMouseLeave}/>
 
-            <NavItem id="nav-cms-navigation" icon={Menu} label="Navigation / Menus" isActive={activeTab === 'cms_navigation'} isCollapsed={isCollapsed} onClick={() => {
+            <NavItem id="nav-cms-navigation" to="/admin/cms_navigation" icon={Menu} label="Navigation / Menus" isActive={activeTab === 'cms_navigation'} isCollapsed={isCollapsed} onClick={() => {
             setActiveTab('cms_navigation');
             setFlyout(null);
         }} onMouseEnter={(e) => handleItemMouseEnter('cms_navigation', 'Navigation / Menus', Menu, e)} onMouseLeave={handleItemMouseLeave}/>
 
-            <NavItem id="nav-cms-media" icon={ImagePlus} label="Media Library" isActive={activeTab === 'cms_media'} isCollapsed={isCollapsed} onClick={() => {
+            <NavItem id="nav-cms-media" to="/admin/cms_media" icon={ImagePlus} label="Media Library" isActive={activeTab === 'cms_media'} isCollapsed={isCollapsed} onClick={() => {
             setActiveTab('cms_media');
             setFlyout(null);
         }} onMouseEnter={(e) => handleItemMouseEnter('cms_media', 'Media Library', ImagePlus, e)} onMouseLeave={handleItemMouseLeave}/>
@@ -362,12 +412,12 @@ export const Sidebar = ({ activeTab, setActiveTab, isCollapsed: externalIsCollap
           <div className="space-y-1">
             <NavSectionHeader title="USER MANAGEMENT" isCollapsed={isCollapsed}/>
 
-            <NavItem id="nav-staff-admins" icon={Users} label="Staff & Admins" isActive={activeTab === 'staff_admins'} isCollapsed={isCollapsed} onClick={() => {
+            <NavItem id="nav-staff-admins" to="/admin/staff_admins" icon={Users} label="Staff & Admins" isActive={activeTab === 'staff_admins'} isCollapsed={isCollapsed} onClick={() => {
             setActiveTab('staff_admins');
             setFlyout(null);
         }} onMouseEnter={(e) => handleItemMouseEnter('staff_admins', 'Staff & Admins', Users, e)} onMouseLeave={handleItemMouseLeave}/>
 
-            <NavItem id="nav-roles" icon={ShieldCheck} label="Roles & Permissions" isActive={activeTab === 'roles'} isCollapsed={isCollapsed} badge={<span className="bg-indigo-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md shadow-2xs">
+            <NavItem id="nav-roles" to="/admin/roles" icon={ShieldCheck} label="Roles & Permissions" isActive={activeTab === 'roles'} isCollapsed={isCollapsed} badge={<span className="bg-indigo-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md shadow-2xs">
                   RBAC
                 </span>} onClick={() => {
             setActiveTab('roles');
@@ -376,7 +426,7 @@ export const Sidebar = ({ activeTab, setActiveTab, isCollapsed: externalIsCollap
                     RBAC
                   </span>)} onMouseLeave={handleItemMouseLeave}/>
 
-            <NavItem id="nav-audit" icon={FileClock} label="Audit Logs" isActive={activeTab === 'audit'} isCollapsed={isCollapsed} onClick={() => {
+            <NavItem id="nav-audit" to="/admin/audit" icon={FileClock} label="Audit Logs" isActive={activeTab === 'audit'} isCollapsed={isCollapsed} onClick={() => {
             setActiveTab('audit');
             setFlyout(null);
         }} onMouseEnter={(e) => handleItemMouseEnter('audit', 'Audit Logs', FileClock, e)} onMouseLeave={handleItemMouseLeave}/>
@@ -416,17 +466,17 @@ export const Sidebar = ({ activeTab, setActiveTab, isCollapsed: externalIsCollap
                 }
             }
         }} onMouseEnter={(e) => handleItemMouseEnter('reports', 'Reports', BarChart3, e, reportSubItems)} onMouseLeave={handleItemMouseLeave}>
-              <NavSubItem id="nav-report-sales" label="Sales Report" isActive={activeTab === 'reports_sales' || activeTab === 'reports'} onClick={() => setActiveTab('reports_sales')}/>
-              <NavSubItem id="nav-report-orders" label="Order Report" isActive={activeTab === 'reports_orders'} onClick={() => setActiveTab('reports_orders')}/>
-              <NavSubItem id="nav-report-products" label="Product Report" isActive={activeTab === 'reports_products'} onClick={() => setActiveTab('reports_products')}/>
-              <NavSubItem id="nav-report-inventory" label="Inventory Report" isActive={activeTab === 'reports_inventory'} onClick={() => setActiveTab('reports_inventory')}/>
-              <NavSubItem id="nav-report-customers" label="Customer Report" isActive={activeTab === 'reports_customers'} onClick={() => setActiveTab('reports_customers')}/>
-              <NavSubItem id="nav-report-payments" label="Payment Report" isActive={activeTab === 'reports_payments'} onClick={() => setActiveTab('reports_payments')}/>
-              <NavSubItem id="nav-report-coupons" label="Coupon / Discount Report" isActive={activeTab === 'reports_coupons'} onClick={() => setActiveTab('reports_coupons')}/>
+              <NavSubItem id="nav-report-sales" to="/admin/reports_sales" label="Sales Report" isActive={activeTab === 'reports_sales' || activeTab === 'reports'} onClick={() => setActiveTab('reports_sales')}/>
+              <NavSubItem id="nav-report-orders" to="/admin/reports_orders" label="Order Report" isActive={activeTab === 'reports_orders'} onClick={() => setActiveTab('reports_orders')}/>
+              <NavSubItem id="nav-report-products" to="/admin/reports_products" label="Product Report" isActive={activeTab === 'reports_products'} onClick={() => setActiveTab('reports_products')}/>
+              <NavSubItem id="nav-report-inventory" to="/admin/reports_inventory" label="Inventory Report" isActive={activeTab === 'reports_inventory'} onClick={() => setActiveTab('reports_inventory')}/>
+              <NavSubItem id="nav-report-customers" to="/admin/reports_customers" label="Customer Report" isActive={activeTab === 'reports_customers'} onClick={() => setActiveTab('reports_customers')}/>
+              <NavSubItem id="nav-report-payments" to="/admin/reports_payments" label="Payment Report" isActive={activeTab === 'reports_payments'} onClick={() => setActiveTab('reports_payments')}/>
+              <NavSubItem id="nav-report-coupons" to="/admin/reports_coupons" label="Coupon / Discount Report" isActive={activeTab === 'reports_coupons'} onClick={() => setActiveTab('reports_coupons')}/>
             </NavGroup>
 
             {/* Analytics */}
-            <NavItem id="nav-analytics" icon={Megaphone} label="Analytics" isActive={activeTab === 'analytics'} isCollapsed={isCollapsed} onClick={() => {
+            <NavItem id="nav-analytics" to="/admin/analytics" icon={Megaphone} label="Analytics" isActive={activeTab === 'analytics'} isCollapsed={isCollapsed} onClick={() => {
             setActiveTab('analytics');
             setFlyout(null);
         }} onMouseEnter={(e) => handleItemMouseEnter('analytics', 'Analytics', Megaphone, e)} onMouseLeave={handleItemMouseLeave}/>
@@ -453,12 +503,12 @@ export const Sidebar = ({ activeTab, setActiveTab, isCollapsed: externalIsCollap
                 toggleSubmenu('store_settings');
             }
         }} onMouseEnter={(e) => handleItemMouseEnter('store_settings', 'Store Settings', Settings, e, storeSettingsSubItems)} onMouseLeave={handleItemMouseLeave}>
-              <NavSubItem id="nav-setting-store-info" label="Store Information" isActive={activeTab === 'settings_store_info' || activeTab === 'store_settings'} onClick={() => setActiveTab('settings_store_info')}/>
-              <NavSubItem id="nav-setting-tax" label="Tax" isActive={activeTab === 'settings_tax'} onClick={() => setActiveTab('settings_tax')}/>
-              <NavSubItem id="nav-setting-currency" label="Currency" isActive={activeTab === 'settings_currency'} onClick={() => setActiveTab('settings_currency')}/>
-              <NavSubItem id="nav-setting-shipping" label="Shipping" isActive={activeTab === 'settings_shipping'} onClick={() => setActiveTab('settings_shipping')}/>
-              <NavSubItem id="nav-setting-payment-methods" label="Payment Methods" isActive={activeTab === 'settings_payment_methods'} onClick={() => setActiveTab('settings_payment_methods')}/>
-              <NavSubItem id="nav-setting-notifications" label="Notification Settings" isActive={activeTab === 'settings_notifications'} onClick={() => setActiveTab('settings_notifications')}/>
+              <NavSubItem id="nav-setting-store-info" to="/admin/settings_store_info" label="Store Information" isActive={activeTab === 'settings_store_info' || activeTab === 'store_settings'} onClick={() => setActiveTab('settings_store_info')}/>
+              <NavSubItem id="nav-setting-tax" to="/admin/settings_tax" label="Tax" isActive={activeTab === 'settings_tax'} onClick={() => setActiveTab('settings_tax')}/>
+              <NavSubItem id="nav-setting-currency" to="/admin/settings_currency" label="Currency" isActive={activeTab === 'settings_currency'} onClick={() => setActiveTab('settings_currency')}/>
+              <NavSubItem id="nav-setting-shipping" to="/admin/settings_shipping" label="Shipping" isActive={activeTab === 'settings_shipping'} onClick={() => setActiveTab('settings_shipping')}/>
+              <NavSubItem id="nav-setting-payment-methods" to="/admin/settings_payment_methods" label="Payment Methods" isActive={activeTab === 'settings_payment_methods'} onClick={() => setActiveTab('settings_payment_methods')}/>
+              <NavSubItem id="nav-setting-notifications" to="/admin/settings_notifications" label="Notification Settings" isActive={activeTab === 'settings_notifications'} onClick={() => setActiveTab('settings_notifications')}/>
             </NavGroup>
           </div>
         </nav>
@@ -488,12 +538,12 @@ export const Sidebar = ({ activeTab, setActiveTab, isCollapsed: externalIsCollap
             </div>
 
             {/* Submenu Dropdown Items */}
-            {flyout.items && flyout.items.length > 0 ? (<div className="relative mt-1.5 space-y-0.5 max-h-[calc(100vh-140px)] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800">
+            {flyout.items && flyout.items.length > 0 ? (<div className="relative mt-1.5 space-y-0.5 max-h-[calc(100vh-140px)] overflow-y-auto sidebar-scrollbar">
                 {flyout.items.map((subItem) => {
                         const isItemActive = activeTab === subItem.id ||
                             (subItem.id === 'reports_sales' && activeTab === 'reports') ||
                             (subItem.id === 'settings_store_info' && activeTab === 'store_settings');
-                        return (<button key={subItem.id} onClick={() => {
+                        return (<Link key={subItem.id} to={subItem.to || `/admin/${subItem.id}`} onClick={() => {
                                 setActiveTab(subItem.id);
                                 setFlyout(null);
                             }} className={`w-full flex items-center justify-between py-1.5 px-2.5 rounded-lg text-xs transition-colors cursor-pointer text-left ${isItemActive
@@ -504,11 +554,12 @@ export const Sidebar = ({ activeTab, setActiveTab, isCollapsed: externalIsCollap
                         <span className="truncate">{subItem.label}</span>
                       </div>
                       {subItem.badge && <div className="shrink-0 ml-2">{subItem.badge}</div>}
-                    </button>);
+                    </Link>);
                     })}
               </div>) : (<div className="relative mt-1 px-2.5 py-1 text-[11px] text-slate-400">
                 Click to open
               </div>)}
           </div>, document.body)}
     </aside>);
+
 };

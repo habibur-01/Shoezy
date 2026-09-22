@@ -7,16 +7,6 @@ import {
   DollarSign,
   Send,
 } from 'lucide-react';
-import { OrderStatus, PaymentStatus } from '../../types';
-
-interface OrderPaymentSectionProps {
-  paymentStatus: PaymentStatus;
-  setPaymentStatus: (status: PaymentStatus) => void;
-  paymentMethod: string;
-  setPaymentMethod: (method: string) => void;
-  fulfillmentStatus: OrderStatus;
-  setFulfillmentStatus: (status: OrderStatus) => void;
-}
 
 const PAYMENT_METHODS = [
   { id: 'Facebook Pay', label: 'Facebook / Messenger Pay', icon: Send },
@@ -29,7 +19,7 @@ const PAYMENT_METHODS = [
   { id: 'Other Direct Payment', label: 'Other Direct Payment', icon: Banknote },
 ];
 
-export const OrderPaymentSection: React.FC<OrderPaymentSectionProps> = ({
+export const OrderPaymentSection = ({
   paymentStatus,
   setPaymentStatus,
   paymentMethod,
@@ -124,7 +114,7 @@ export const OrderPaymentSection: React.FC<OrderPaymentSectionProps> = ({
           <select
             id="select-fulfillment-status"
             value={fulfillmentStatus}
-            onChange={(e) => setFulfillmentStatus(e.target.value as OrderStatus)}
+            onChange={(e) => setFulfillmentStatus(e.target.value)}
             className="w-full text-xs px-3 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-zinc-800"
           >
             <option value="processing">Processing (Ready for Pick & Pack)</option>

@@ -9,19 +9,9 @@ import {
   DollarSign,
 } from 'lucide-react';
 import { useAdmin } from '../../context/AdminContext';
-import { ShippingCarrierOption } from '../../types';
 import { AddCustomCarrierModal } from './AddCustomCarrierModal';
 
-interface ShippingCarrierSectionProps {
-  carrier: string;
-  setCarrier: (name: string) => void;
-  shippingRate: number;
-  setShippingRate: (rate: number) => void;
-  trackingNumber: string;
-  setTrackingNumber: (tracking: string) => void;
-}
-
-export const ShippingCarrierSection: React.FC<ShippingCarrierSectionProps> = ({
+export const ShippingCarrierSection = ({
   carrier,
   setCarrier,
   shippingRate,
@@ -32,7 +22,7 @@ export const ShippingCarrierSection: React.FC<ShippingCarrierSectionProps> = ({
   const { shippingCarriers, addShippingCarrier } = useAdmin();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
-  const handleSelectCarrier = (c: ShippingCarrierOption) => {
+  const handleSelectCarrier = (c) => {
     setCarrier(c.name);
     setShippingRate(c.baseRate);
     if (!trackingNumber) {
@@ -49,7 +39,7 @@ export const ShippingCarrierSection: React.FC<ShippingCarrierSectionProps> = ({
     setTrackingNumber(`${prefix}${num}`);
   };
 
-  const handleAddCarrierSuccess = (newCarrierData: Omit<ShippingCarrierOption, 'id'>) => {
+  const handleAddCarrierSuccess = (newCarrierData) => {
     addShippingCarrier(newCarrierData);
     setCarrier(newCarrierData.name);
     setShippingRate(newCarrierData.baseRate);
@@ -183,7 +173,7 @@ export const ShippingCarrierSection: React.FC<ShippingCarrierSectionProps> = ({
               onClick={handleGenerateTracking}
               className="text-[11px] text-indigo-600 hover:underline inline-flex items-center gap-1 cursor-pointer"
             >
-              <Sparkles className="w-3 h-3 text-indigo-500" />
+              <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
               Generate
             </button>
           </label>

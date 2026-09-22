@@ -9,28 +9,9 @@ import {
   UserCheck,
   Check,
 } from 'lucide-react';
-import { SocialOrderSource } from '../../types';
 import { useAdmin } from '../../context/AdminContext';
 
-interface SourceChannelSelectorProps {
-  source: SocialOrderSource | string;
-  setSource: (source: SocialOrderSource | string) => void;
-  sourceHandle: string;
-  setSourceHandle: (handle: string) => void;
-}
-
-interface ChannelConfig {
-  id: SocialOrderSource;
-  label: string;
-  icon: React.ElementType;
-  badge: string;
-  placeholder: string;
-  bgColor: string;
-  textColor: string;
-  activeBorder: string;
-}
-
-const CHANNELS: ChannelConfig[] = [
+const CHANNELS = [
   {
     id: 'facebook',
     label: 'Facebook',
@@ -103,7 +84,7 @@ const CHANNELS: ChannelConfig[] = [
   },
 ];
 
-export const SourceChannelSelector: React.FC<SourceChannelSelectorProps> = ({
+export const SourceChannelSelector = ({
   source,
   setSource,
   sourceHandle,

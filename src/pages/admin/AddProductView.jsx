@@ -12,6 +12,7 @@ import { VariantsSection } from './addProduct/VariantsSection';
 import { ShippingSection } from './addProduct/ShippingSection';
 import { SeoSection } from './addProduct/SeoSection';
 import { ProductPreviewModal } from './addProduct/ProductPreviewModal';
+import { getAdminBrands } from '../../server/brand/adminBrand';
 
 export const AddProductView = ({
   onBack,
@@ -25,7 +26,8 @@ export const AddProductView = ({
 
   // Core product states
   const [title, setTitle] = useState('');
-  const [brand, setBrand] = useState('Shoezy');
+  const [brand, setBrand] = useState('others');
+  const [brandsList, setBrandsList] = useState([]);
   const [barcode, setBarcode] = useState('');
   const [description, setDescription] = useState('');
   const [tags, setTags] = useState(['new-arrival']);
@@ -55,6 +57,26 @@ export const AddProductView = ({
       }
     }
   }, [categories, category]);
+
+  // Load catalog brands for selection
+  useEffect(() => {
+    let isMounted = true;
+    const loadBrands = async () => {
+      try {
+        const res = await getAdminBrands();
+        const list = res?.data || (Array.isArray(res) ? res : []);
+        if (isMounted) {
+          setBrandsList(list);
+        }
+      } catch (err) {
+        console.error('Failed to load brands:', err);
+      }
+    };
+    loadBrands();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Financials & Pricing
   const [price, setPrice] = useState(0);
@@ -157,7 +179,7 @@ export const AddProductView = ({
           cover: image.trim(),
           gallery: galleryImages.length > 0 ? galleryImages : [],
         },
-        brand: brand.trim() || 'Shoezy',
+        brand: brand && brand !== 'others' ? brand : 'others',
         barcode: barcode.trim() || undefined,
         description: description.trim() || undefined,
         galleryImages: galleryImages.length > 0 ? galleryImages : undefined,
@@ -208,6 +230,7 @@ export const AddProductView = ({
             setTitle={setTitle}
             brand={brand}
             setBrand={setBrand}
+            brandsList={brandsList}
             barcode={barcode}
             setBarcode={setBarcode}
             description={description}
@@ -350,7 +373,7 @@ export const AddProductView = ({
         isOpen={isPreviewOpen}
         onClose={() => setIsPreviewOpen(false)}
         title={title}
-        brand={brand}
+        brand={brandsList.find((b) => (b._id || b.id) === brand)?.name || (brand === 'others' || !brand ? 'Others' : brand)}
         price={price}
         compareAtPrice={compareAtPrice}
         image={image}
