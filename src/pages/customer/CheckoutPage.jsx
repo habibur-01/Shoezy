@@ -2,7 +2,7 @@ import { User, ShieldCheck } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useDispatch, useSelector } from "react-redux";
-import { getUserAddresses, getBillingAddress } from "../../server/billing/billing";
+import { getUserAddresses } from "../../server/billing/billing";
 import Breadcrumb from "../../components/common/Breadcrumb/Breadcrumb";
 import Container from "../../components/common/Container/Container";
 import CheckoutSummary from "../../components/checkout/CheckoutSummary";
@@ -37,11 +37,6 @@ const CheckoutPage = () => {
       return result?.data?.data || [];
     },
   });
-  console.log("🚀 ~ CheckoutPage ~ addresses:", addresses)
- 
-
- 
-
   // Set default active selected address
   useEffect(() => {
     if (addresses?.length > 0 && !selectedAddress) {
@@ -51,7 +46,6 @@ const CheckoutPage = () => {
   }, [addresses, selectedAddress]);
 
   const activeAddr = selectedAddress;
-  console.log("🚀 ~ CheckoutPage ~ activeAddr:", activeAddr)
   const hasAddress = Boolean(activeAddr && (activeAddr.addressLine || activeAddr.shippingAddress?.address));
 
   const products = cartItems?.items || [];
@@ -91,17 +85,15 @@ const CheckoutPage = () => {
       }
 
       const orderPayload = {
-        appliedCoupon: cartItems?.appliedCoupon || null,
+        addressId: activeAddr._id || activeAddr.id,
         paymentMethod,
         transactionId: trxId.trim(),
-        items: products,
-        finalPrice: cartItems?.finalPrice !== undefined ? cartItems.finalPrice : cartItems?.totalPrice,
       };
 
       const res = await createOrder(orderPayload);
 
       if (res?.data?.success) {
-        toast.success("Order placed successfully!");
+        toast.success(res?.data?.message || "Order placed successfully!");
         setShowConfirmation(true);
         setOrderData(res?.data?.data?.order || cartItems);
         dispatch(setCarts({ items: [], totalPrice: 0, discount: 0, finalPrice: 0 }));
@@ -227,10 +219,10 @@ const CheckoutPage = () => {
             <OrderConfirmation
               showConfirmation={showConfirmation}
               orderData={orderData}
+              paymentMethod={paymentMethod}
               onClose={() => {
                 setShowConfirmation(false);
                 setOrderData(null);
-                navigate("/");
               }}
             />
           )}

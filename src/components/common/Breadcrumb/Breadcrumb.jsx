@@ -8,7 +8,7 @@ const Breadcrumb = () => {
   const pathnames = location.pathname.split("/").filter(Boolean);
 
   return (
-    <div className="text-xs sm:text-sm text-stone-400 mb-6 sm:mb-8 flex items-center flex-wrap gap-x-1 gap-y-1">
+    <div className="text-xs sm:text-sm text-stone-400 mb-6 sm:mb-8 flex items-center flex-wrap gap-x-1 gap-y-1 ml-3 ">
       <FaHome className="text-stone-400" />
       <Link to="/" className="hover:text-red-500 transition-colors">Home</Link>
 

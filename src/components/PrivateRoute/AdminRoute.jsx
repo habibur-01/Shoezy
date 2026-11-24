@@ -23,7 +23,10 @@ const AdminRoute = ({ children }) => {
   }
 
   const hasAdminPrivilege =
-    isAuthenticated && (user?.role === 'admin' || user?.role === 'manager');
+    isAuthenticated &&
+    user?.role &&
+    user.role !== 'user' &&
+    user.role !== 'customer';
 
   if (!hasAdminPrivilege) {
     return <Navigate to="/admin/login" state={{ from: location }} replace />;

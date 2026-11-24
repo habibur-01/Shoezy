@@ -17,13 +17,13 @@ export const SidebarUserProfile = ({
           onClick={isCollapsed ? onLogout : undefined}
           title={
             isCollapsed
-              ? `${currentUser.name} (${currentRole.name}) - Click to sign out`
+              ? `${currentUser?.name || 'Staff member'} (${currentRole?.name || 'Staff'}) - Click to sign out`
               : undefined
           }
         >
           <img
-            src={currentUser.avatar}
-            alt={currentUser.name}
+            src={currentUser?.avatar || '/assets/images/icon/user.svg'}
+            alt={currentUser?.name || 'Staff member'}
             className="w-9 h-9 rounded-full object-cover border border-slate-700 hover:border-indigo-500 transition-colors shrink-0"
           />
 
@@ -39,11 +39,11 @@ export const SidebarUserProfile = ({
           }`}
         >
           <p className="text-xs font-semibold text-white truncate">
-            {currentUser.name}
+            {currentUser?.name || 'Staff member'}
           </p>
 
           <p className="text-[11px] text-slate-400 truncate">
-            {currentRole.name}
+            {currentRole?.name || 'Staff'}
           </p>
         </div>
 

@@ -5,6 +5,8 @@ import ProfilePageLayout from "../layouts/ProfilePageLayout";
 import AdminLayout from "../layouts/AdminLayout";
 import PrivateRoute from "../components/PrivateRoute/PrivatRoute";
 import AdminRoute from "../components/PrivateRoute/AdminRoute";
+import AdminPermissionGuard from "../components/PrivateRoute/AdminPermissionGuard";
+import { AdminProvider } from "../context/AdminContext";
 
 // Common Pages (Root of pages)
 import Home from "../pages/Home";
@@ -97,7 +99,7 @@ const Router = () => {
       </Route>
 
       {/* Dedicated Executive Admin Login Route */}
-      <Route path="/admin/login" element={<AdminLogin />} />
+      <Route path="/login/2086" element={<AdminLogin />} />
 
       {/* Protected Admin Operations Hub Routes - Ordered Serial-wise */}
       <Route
@@ -179,7 +181,11 @@ const Router = () => {
         path="/admin/page-builder/:id"
         element={
           <AdminRoute>
-            <PageBuilder />
+            <AdminProvider>
+              <AdminPermissionGuard permission="cms.pages.manage">
+                <PageBuilder />
+              </AdminPermissionGuard>
+            </AdminProvider>
           </AdminRoute>
         }
       />
@@ -187,7 +193,11 @@ const Router = () => {
         path="/admin/page-builder/new"
         element={
           <AdminRoute>
-            <PageBuilder />
+            <AdminProvider>
+              <AdminPermissionGuard permission="cms.pages.manage">
+                <PageBuilder />
+              </AdminPermissionGuard>
+            </AdminProvider>
           </AdminRoute>
         }
       />

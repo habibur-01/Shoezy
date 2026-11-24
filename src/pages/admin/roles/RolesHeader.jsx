@@ -7,6 +7,8 @@ import { UserPlus, Plus } from 'lucide-react';
 
 
 export const RolesHeader = ({
+  canInviteStaff,
+  canCreateRole,
   onOpenInviteModal,
   onOpenCreateRoleModal
 }) => {
@@ -22,6 +24,7 @@ export const RolesHeader = ({
       </div>
 
       <div className="flex items-center gap-2 self-start sm:self-auto">
+        {canInviteStaff && (
         <button
           id="btn-open-invite-modal"
           onClick={onOpenInviteModal}
@@ -30,6 +33,8 @@ export const RolesHeader = ({
           <UserPlus className="w-3.5 h-3.5 text-zinc-500" />
           Invite Staff
         </button>
+        )}
+        {canCreateRole && (
         <button
           id="btn-open-create-role-modal"
           onClick={onOpenCreateRoleModal}
@@ -38,6 +43,7 @@ export const RolesHeader = ({
           <Plus className="w-4 h-4" />
           Create Custom Role
         </button>
+        )}
       </div>
     </div>);
 

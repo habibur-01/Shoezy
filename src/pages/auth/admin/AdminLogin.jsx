@@ -1,18 +1,9 @@
-import React, { useState } from "react";
-import { useNavigate, useLocation, Link } from "react-router-dom";
+import React from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import {
   ShieldCheck,
-  Lock,
-  Mail,
-  Eye,
-  EyeOff,
-  ArrowRight,
   Sparkles,
-  Store,
-  CheckCircle2,
-  KeyRound,
-  Users,
   Radio,
 } from "lucide-react";
 import { toast } from "react-toastify";
@@ -20,10 +11,8 @@ import { setAuthUser } from "../../../redux/features/auth/authSlice";
 import api from "../../../api/index";
 import { ADMIN_LOGIN_ENDPOINT } from "../../../endpoint";
 import * as Yup from "yup";
-import { Field, Form, Formik } from "formik";
 import { LoginBrandPanel } from "./LoginBrandPanel";
 import { LoginForm } from "./LoginForm";
-import { ForgotPasswordModal } from "../../../components/common/auth/ForgotPasswordModal";
 
 const AdminLoginSchema = Yup.object().shape({
   email: Yup.string()
@@ -38,8 +27,6 @@ export const AdminLogin = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
-  const [activeTab, setActiveTab] = useState("form");
-  const [isLoading, setIsLoading] = useState(false);
 
   const from = location.state?.from?.pathname || "/admin/dashboard";
 
@@ -78,16 +65,6 @@ export const AdminLogin = () => {
     } finally {
       setSubmitting(false);
     }
-  };
-
-  const handleSSOLogin = (provider) => {
-    setIsLoading(true);
-    setError(null);
-    setTimeout(() => {
-      // Direct login as Alex Vance (Super Admin)
-      // loginAsUser('usr_01');
-      setIsLoading(false);
-    }, 600);
   };
 
   return (
@@ -131,8 +108,7 @@ export const AdminLogin = () => {
                   Welcome Back
                 </h2>
                 <p className="mt-1 text-sm text-stone-600 font-light">
-                  Enter your credentials or select a verified staff persona to
-                  test role permissions.
+                  Sign in with your staff account. Your assigned permissions control which sections you can access.
                 </p>
               </div>
             </div>
@@ -142,10 +118,8 @@ export const AdminLogin = () => {
 
             <LoginForm
               schema={AdminLoginSchema}
-              isLoading={isLoading}
               onSubmit={handleLogin}
               // onForgotPassword={() => setIsForgotPasswordOpen(true)}
-              onSSOLogin={handleSSOLogin}
             />
           </div>
 
@@ -162,25 +136,15 @@ export const AdminLogin = () => {
             <span>CommerceHQ Infrastructure: Active</span>
           </div>
           <div className="flex items-center gap-4">
-            <button
-              type="button"
-              onClick={() => setIsForgotPasswordOpen(true)}
-              className="hover:text-zinc-900 transition-colors cursor-pointer"
-            >
+            <a href="mailto:support@shoezy.com" className="hover:text-zinc-900 transition-colors">
               Need assistance?
-            </button>
+            </a>
             <span>•</span>
             <span className="text-zinc-400">Security Audit Logs Enabled</span>
           </div>
         </div>
       </div>
 
-      {/* Forgot Password Modal */}
-      {/* <ForgotPasswordModal
-        isOpen={isForgotPasswordOpen}
-        onClose={() => setIsForgotPasswordOpen(false)}
-        defaultEmail={email}
-      /> */}
     </div>
   );
 };

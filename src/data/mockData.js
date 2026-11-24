@@ -65,176 +65,400 @@ export const MEMBER_PERKS = [
 // ==========================================
 
 export const PERMISSION_DEFINITIONS = [
-  // Products
+  // ==========================================
+  // 1. OVERVIEW
+  // ==========================================
+  {
+    key: 'overview.view',
+    label: 'View Dashboard & KPI Overview',
+    category: 'Overview',
+    description: 'Access real-time sales overview, KPI metrics, revenue charts, and operational alerts',
+  },
+
+  // ==========================================
+  // 2. CATALOG
+  // ==========================================
   {
     key: 'products.view',
-    label: 'View Products & Inventory',
-    category: 'Products',
-    description: 'Browse catalog, review stock counts, prices, and variant metrics',
+    label: 'View Products Catalog',
+    category: 'Catalog',
+    description: 'Browse product listings, price points, stock numbers, and variant details',
   },
   {
     key: 'products.create',
     label: 'Create New Products',
-    category: 'Products',
-    description: 'Publish new footwear listings, variants, media, and SEO meta',
+    category: 'Catalog',
+    description: 'Publish new footwear listings, variants, media, specifications, and SEO metadata',
   },
   {
     key: 'products.edit',
     label: 'Modify Product Details',
-    category: 'Products',
-    description: 'Edit product titles, pricing tiers, descriptions, and categories',
+    category: 'Catalog',
+    description: 'Edit titles, descriptions, pricing tiers, badges, tags, and category associations',
   },
   {
     key: 'products.delete',
     label: 'Archive / Delete Products',
-    category: 'Products',
-    description: 'Remove discontinued shoe models or variants from public view',
+    category: 'Catalog',
+    description: 'Remove discontinued shoe models or product listings from the active catalog',
+  },
+  {
+    key: 'products.variants',
+    label: 'Manage Product Variants',
+    category: 'Catalog',
+    description: 'Configure shoe size matrices, colorways, SKU mappings, and variant pricing',
   },
   {
     key: 'products.stock_update',
     label: 'Quick Stock Level Adjustment',
-    category: 'Products',
-    description: 'Directly modify quantity on hand and low-stock threshold triggers',
+    category: 'Catalog',
+    description: 'Directly modify on-hand inventory levels and low-stock replenishment alert thresholds',
   },
-
-  // Categories
   {
     key: 'categories.view',
     label: 'View Taxonomy Hierarchy',
-    category: 'Categories',
-    description: 'Browse master, sub, and child tier category taxonomy trees',
+    category: 'Catalog',
+    description: 'Browse master, sub-category, and child category navigation structures',
   },
   {
     key: 'categories.create',
-    label: 'Create Category Tiers',
-    category: 'Categories',
-    description: 'Add new master categories, sub-categories, or child attributes',
+    label: 'Create Categories',
+    category: 'Catalog',
+    description: 'Add new category tiers, child taxonomies, and banner assignments',
   },
   {
     key: 'categories.edit',
-    label: 'Edit Category Structure',
-    category: 'Categories',
-    description: 'Update category slugs, display names, banner media, and sorting',
+    label: 'Edit Categories',
+    category: 'Catalog',
+    description: 'Update category names, slugs, icons, hierarchy order, and display status',
   },
   {
     key: 'categories.delete',
     label: 'Delete Categories',
-    category: 'Categories',
-    description: 'Remove empty category nodes or reassign child products',
+    category: 'Catalog',
+    description: 'Remove taxonomy nodes and reassign associated footwear products',
+  },
+  {
+    key: 'brands.view',
+    label: 'View Brands Directory',
+    category: 'Catalog',
+    description: 'Browse footwear brand directory, active logos, and partnership statuses',
+  },
+  {
+    key: 'brands.manage',
+    label: 'Manage Brands',
+    category: 'Catalog',
+    description: 'Add, update, or remove manufacturer brands and brand logos',
+  },
+  {
+    key: 'inventory.view',
+    label: 'View Inventory Alerts & Stock',
+    category: 'Catalog',
+    description: 'Inspect low-stock alerts, out-of-stock SKUs, and replenishment queues',
+  },
+  {
+    key: 'inventory.manage',
+    label: 'Manage Inventory Levels',
+    category: 'Catalog',
+    description: 'Perform batch stock updates, warehouse transfers, and inventory adjustments',
   },
 
-  // Orders
+  // ==========================================
+  // 3. SALES & ORDERS
+  // ==========================================
   {
     key: 'orders.view',
     label: 'View Orders & Invoices',
-    category: 'Orders',
-    description: 'Access customer orders, billing summaries, and itemized packages',
+    category: 'Sales & Orders',
+    description: 'Access customer orders, billing summaries, item packages, and tracking records',
+  },
+  {
+    key: 'orders.create',
+    label: 'Create Admin Orders',
+    category: 'Sales & Orders',
+    description: 'Manually place customer orders, phone orders, and generate bespoke checkout drafts',
   },
   {
     key: 'orders.update_status',
     label: 'Update Fulfillment Status',
-    category: 'Orders',
-    description: 'Advance orders between Pending, Processing, Shipped, and Delivered',
+    category: 'Sales & Orders',
+    description: 'Advance orders through Pending, Processing, Shipped, Delivered, and Cancelled',
   },
   {
     key: 'orders.cancel_refund',
-    label: 'Cancel Orders & Issue Refunds',
-    category: 'Orders',
-    description: 'Initiate payment refunds and return items back to active stock',
+    label: 'Process Returns & Refunds',
+    category: 'Sales & Orders',
+    description: 'Approve return authorizations, issue payment refunds, and restock order items',
   },
   {
     key: 'orders.export',
-    label: 'Export Orders Manifest to CSV',
-    category: 'Orders',
-    description: 'Download bulk order reporting manifests for logistics dispatch',
+    label: 'Export Orders Manifest',
+    category: 'Sales & Orders',
+    description: 'Download CSV and Excel order manifests for logistics and warehouse dispatch',
+  },
+  {
+    key: 'transactions.view',
+    label: 'View Payment Transactions',
+    category: 'Sales & Orders',
+    description: 'Review merchant settlements, gateway transaction IDs, and payment logs',
+  },
+  {
+    key: 'transactions.export',
+    label: 'Export Transaction Ledger',
+    category: 'Sales & Orders',
+    description: 'Download financial transaction logs and gateway reconciliation reports',
   },
 
-  // Coupons
+  // ==========================================
+  // 4. CUSTOMERS
+  // ==========================================
+  {
+    key: 'customers.view',
+    label: 'View Customers Directory',
+    category: 'Customers',
+    description: 'Browse registered customers, purchase history, contact details, and tier status',
+  },
+  {
+    key: 'customers.manage',
+    label: 'Manage Customer Accounts',
+    category: 'Customers',
+    description: 'Edit customer records, modify account statuses, and manage billing addresses',
+  },
+  {
+    key: 'customers.analytics',
+    label: 'View Customer Analytics',
+    category: 'Customers',
+    description: 'Analyze customer retention cohorts, repeat purchase rate, and lifetime value (LTV)',
+  },
+  {
+    key: 'reviews.view',
+    label: 'View Product Reviews',
+    category: 'Customers',
+    description: 'Inspect verified customer product ratings, testimonials, and review feedback',
+  },
+  {
+    key: 'reviews.moderate',
+    label: 'Moderate Product Reviews',
+    category: 'Customers',
+    description: 'Approve, hide, reply to, or delete customer reviews and ratings',
+  },
+
+  // ==========================================
+  // 5. PROMOTIONS & MARKETING
+  // ==========================================
   {
     key: 'coupons.view',
-    label: 'View Promotion Campaigns',
-    category: 'Coupons',
-    description: 'Review active discount codes, usage velocity, and expirations',
+    label: 'View Discount Coupons',
+    category: 'Promotions & Marketing',
+    description: 'Review active promo voucher codes, usage metrics, limits, and expiration windows',
   },
   {
     key: 'coupons.create',
-    label: 'Generate Promotional Coupons',
-    category: 'Coupons',
-    description: 'Create percentage, flat discount, or free delivery coupon codes',
+    label: 'Create Discount Coupons',
+    category: 'Promotions & Marketing',
+    description: 'Generate percentage, flat rate, or free-shipping promo coupons',
   },
   {
     key: 'coupons.toggle',
     label: 'Activate / Pause Coupons',
-    category: 'Coupons',
-    description: 'Instantly enable or suspend active discount promotions',
+    category: 'Promotions & Marketing',
+    description: 'Instantly toggle promotional codes between active and suspended states',
   },
   {
     key: 'coupons.delete',
-    label: 'Delete Expired Coupons',
-    category: 'Coupons',
-    description: 'Permanently remove promotional voucher campaigns from records',
-  },
-
-  // Analytics
-  {
-    key: 'analytics.view',
-    label: 'View Analytics & Performance',
-    category: 'Analytics',
-    description: 'Review conversion charts, regional customer footprint, and LTV',
+    label: 'Delete Coupons',
+    category: 'Promotions & Marketing',
+    description: 'Permanently remove expired or cancelled discount coupon codes',
   },
   {
-    key: 'analytics.export',
-    label: 'Export Customer Analytics CSV',
-    category: 'Analytics',
-    description: 'Extract customer segment cohorts and lifetime value metrics',
+    key: 'discounts.view',
+    label: 'View Discounts & Offers',
+    category: 'Promotions & Marketing',
+    description: 'Inspect automated catalog flash sales, bundle deals, and tiered pricing rules',
+  },
+  {
+    key: 'discounts.manage',
+    label: 'Manage Discounts & Offers',
+    category: 'Promotions & Marketing',
+    description: 'Create and configure scheduled discounts, sale banners, and automated offers',
+  },
+  {
+    key: 'campaigns.view',
+    label: 'View Marketing Campaigns',
+    category: 'Promotions & Marketing',
+    description: 'Review seasonal marketing initiatives, newsletters, and promotional campaigns',
+  },
+  {
+    key: 'campaigns.manage',
+    label: 'Manage Marketing Campaigns',
+    category: 'Promotions & Marketing',
+    description: 'Schedule, launch, and configure marketing campaigns and promotional channels',
   },
 
-  // Roles & Permissions
+  // ==========================================
+  // 6. CONTENT (CMS)
+  // ==========================================
+  {
+    key: 'cms.pages.view',
+    label: 'View CMS Pages',
+    category: 'Content (CMS)',
+    description: 'Browse custom landing pages, policy documents, and brand storytelling pages',
+  },
+  {
+    key: 'cms.pages.manage',
+    label: 'Manage CMS Pages & Visual Builder',
+    category: 'Content (CMS)',
+    description: 'Create, design with page builder, publish, and delete bespoke CMS pages',
+  },
+  {
+    key: 'cms.banners.view',
+    label: 'View Hero & Promo Banners',
+    category: 'Content (CMS)',
+    description: 'Inspect storefront hero sliders, category banners, and promotional ribbons',
+  },
+  {
+    key: 'cms.banners.manage',
+    label: 'Manage Storefront Banners',
+    category: 'Content (CMS)',
+    description: 'Upload banner creatives, configure call-to-action links, and adjust sequencing',
+  },
+  {
+    key: 'cms.homepage.view',
+    label: 'View Homepage Layout Sections',
+    category: 'Content (CMS)',
+    description: 'Browse dynamic homepage sections, featured grids, and brand highlights',
+  },
+  {
+    key: 'cms.homepage.manage',
+    label: 'Manage Homepage Sections',
+    category: 'Content (CMS)',
+    description: 'Reorder, activate, customize, and configure dynamic homepage modules',
+  },
+  {
+    key: 'cms.navigation.view',
+    label: 'View Navigation & Menus',
+    category: 'Content (CMS)',
+    description: 'Inspect storefront header menus, mobile drawer links, and footer navigation',
+  },
+  {
+    key: 'cms.navigation.manage',
+    label: 'Manage Navigation Menus',
+    category: 'Content (CMS)',
+    description: 'Configure menu link structures, category dropdowns, and custom menu links',
+  },
+  {
+    key: 'cms.media.view',
+    label: 'View Media Library',
+    category: 'Content (CMS)',
+    description: 'Browse Cloudinary / CDN uploaded assets, product shots, and brand graphics',
+  },
+  {
+    key: 'cms.media.manage',
+    label: 'Manage Media Assets',
+    category: 'Content (CMS)',
+    description: 'Upload, organize, tag, and purge media assets from the central library',
+  },
+
+  // ==========================================
+  // 7. USER MANAGEMENT
+  // ==========================================
   {
     key: 'roles.view',
-    label: 'View Staff & Roles',
-    category: 'Roles & Staff',
-    description: 'Browse current administrative personnel and assigned roles',
+    label: 'View Staff & Administrative Personnel',
+    category: 'User Management',
+    description: 'Inspect admin team members, role assignments, status badges, and contact details',
   },
   {
     key: 'roles.manage_permissions',
     label: 'Modify Capabilities Matrix',
-    category: 'Roles & Staff',
-    description: 'Toggle individual operational capabilities for security roles',
+    category: 'User Management',
+    description: 'Grant and revoke operational capabilities and security flags across roles',
   },
   {
     key: 'roles.invite_staff',
-    label: 'Invite & Onboard Team Members',
-    category: 'Roles & Staff',
-    description: 'Send invitation emails and assign access scopes to personnel',
+    label: 'Invite & Onboard Staff',
+    category: 'User Management',
+    description: 'Send invitations to new staff members and assign their initial access role',
   },
   {
     key: 'roles.create_role',
     label: 'Define Custom Roles',
-    category: 'Roles & Staff',
+    category: 'User Management',
     description: 'Create bespoke RBAC roles with tailored privilege profiles',
   },
-
-  // Audit Logs
+  {
+    key: 'users.view',
+    label: 'View Registered Users Directory',
+    category: 'User Management',
+    description: 'Browse customer account records, email verification states, and login logs',
+  },
+  {
+    key: 'users.manage',
+    label: 'Manage Registered Users',
+    category: 'User Management',
+    description: 'Update user statuses (active, suspended), assign customer roles, or delete users',
+  },
   {
     key: 'audit.view',
-    label: 'View System Audit Trail',
-    category: 'Audit Trail',
-    description: 'Inspect timestamped event records of administrative operations',
+    label: 'View Security Audit Trail',
+    category: 'User Management',
+    description: 'Inspect immutable timestamped event records of all administrative actions',
   },
   {
     key: 'audit.export',
-    label: 'Export Audit Trail Logs to CSV',
-    category: 'Audit Trail',
-    description: 'Download cryptographic or compliance-ready activity archives',
+    label: 'Export Audit Logs to CSV',
+    category: 'User Management',
+    description: 'Download compliance-ready activity archives and security trail manifests',
   },
 
-  // Settings & Gateways
+  // ==========================================
+  // 8. ANALYTICS & INSIGHTS
+  // ==========================================
+  {
+    key: 'reports.view',
+    label: 'View Reports & Business Intelligence',
+    category: 'Analytics & Insights',
+    description: 'Access sales, orders, products, inventory, customers, and payments reports',
+  },
+  {
+    key: 'reports.export',
+    label: 'Export Reports Data',
+    category: 'Analytics & Insights',
+    description: 'Download CSV and Excel files for all business performance report modules',
+  },
+  {
+    key: 'analytics.view',
+    label: 'View Operations & Conversion Analytics',
+    category: 'Analytics & Insights',
+    description: 'Review conversion funnel charts, regional customer footprint, and revenue trends',
+  },
+  {
+    key: 'analytics.export',
+    label: 'Export Analytics Data',
+    category: 'Analytics & Insights',
+    description: 'Extract customer segment metrics and conversion performance figures',
+  },
+
+  // ==========================================
+  // 9. SYSTEM & CONFIGURATION
+  // ==========================================
+  {
+    key: 'settings.view',
+    label: 'View Store Settings',
+    category: 'System & Configuration',
+    description: 'Inspect store information, tax configurations, currency options, and shipping zones',
+  },
+  {
+    key: 'settings.manage',
+    label: 'Modify Store Settings',
+    category: 'System & Configuration',
+    description: 'Update store profile, tax rules, currency formatting, shipping rates, and alerts',
+  },
   {
     key: 'settings.payment_gateways',
     label: 'Configure Payment Gateways',
-    category: 'Settings',
-    description: 'Manage bKash, Nagad, Stripe, COD, and merchant credentials',
+    category: 'System & Configuration',
+    description: 'Manage bKash, Nagad, Stripe, COD, merchant credentials, and active channels',
   },
 ];
 
@@ -258,23 +482,52 @@ export const INITIAL_ROLES = [
     color: 'indigo',
     isCustom: false,
     permissions: [
+      'overview.view',
       'products.view',
       'products.create',
       'products.edit',
+      'products.variants',
       'products.stock_update',
       'categories.view',
       'categories.create',
       'categories.edit',
+      'brands.view',
+      'brands.manage',
+      'inventory.view',
+      'inventory.manage',
       'orders.view',
+      'orders.create',
       'orders.update_status',
       'orders.cancel_refund',
       'orders.export',
+      'transactions.view',
+      'customers.view',
+      'customers.manage',
+      'customers.analytics',
+      'reviews.view',
+      'reviews.moderate',
       'coupons.view',
       'coupons.create',
       'coupons.toggle',
+      'discounts.view',
+      'discounts.manage',
+      'campaigns.view',
+      'campaigns.manage',
+      'cms.pages.view',
+      'cms.pages.manage',
+      'cms.banners.view',
+      'cms.banners.manage',
+      'cms.homepage.view',
+      'cms.homepage.manage',
+      'cms.navigation.view',
+      'cms.media.view',
+      'cms.media.manage',
+      'reports.view',
+      'reports.export',
       'analytics.view',
       'roles.view',
       'audit.view',
+      'settings.view',
       'settings.payment_gateways',
     ],
   },
@@ -285,14 +538,20 @@ export const INITIAL_ROLES = [
     color: 'amber',
     isCustom: false,
     permissions: [
+      'overview.view',
       'products.view',
       'products.create',
       'products.edit',
+      'products.variants',
       'products.stock_update',
       'categories.view',
       'categories.create',
       'categories.edit',
+      'brands.view',
+      'inventory.view',
+      'inventory.manage',
       'orders.view',
+      'reports.view',
       'audit.view',
     ],
   },
@@ -303,10 +562,13 @@ export const INITIAL_ROLES = [
     color: 'sky',
     isCustom: false,
     permissions: [
+      'overview.view',
       'products.view',
       'categories.view',
       'orders.view',
       'orders.update_status',
+      'customers.view',
+      'reviews.view',
       'coupons.view',
     ],
   },

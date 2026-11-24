@@ -133,11 +133,11 @@ const CategoryFilter = ({
             return (
               <div
                 key={sub._id}
-                className="border border-stone-200/80 rounded-xl overflow-hidden bg-white shadow-2xs"
+                className=" overflow-hidden bg-white "
               >
                 {/* Subcategory Row (Parent) */}
                 <div
-                  className={`flex items-center justify-between px-3 py-2.5 transition-colors ${
+                  className={`flex items-center justify-between px-2 py-2.5 transition-colors ${
                     isSubActive ? "bg-stone-100 font-bold" : "hover:bg-stone-50"
                   }`}
                 >
@@ -193,7 +193,7 @@ const CategoryFilter = ({
 
                 {/* Level 3: Child Categories Dropdown */}
                 {hasChildren && isSubExpanded && (
-                  <div className="pl-6 pr-3 py-2 bg-stone-50/80 border-t border-stone-200/70 space-y-1">
+                  <div className="pl-6 pr-2 py-2 bg-stone-50/80 border-t border-stone-200/70 space-y-1">
                     {children.map((child) => {
                       const isChildChecked = selectedChildCategories.includes(child.slug);
 

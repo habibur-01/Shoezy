@@ -47,6 +47,7 @@ const SECTION_TEMPLATES = [
   { type: 'banner', name: 'Main Hero Banner Slider', category: 'Banners', description: 'Full-width high impact carousel banner with headline CTA.' },
   { type: 'shoe_showcase', name: 'Shoe Style & Variant Showcase', category: 'Visuals', description: 'Interactive multi-angle footwear category gallery.' },
   { type: 'testimonials', name: 'Customer Testimonials & Reviews', category: 'Social Proof', description: 'Verified buyer testimonials and star ratings carousel.' },
+  { type: 'newsletter', name: 'Newsletter Sign Up', category: 'Customer Engagement', description: 'Invite visitors to join the Shoezy mailing list.' },
   { type: 'support', name: 'Customer Support & Perks Badges', category: 'Trust', description: 'Fast delivery, warranty, and payment trust badges.' },
 ];
 

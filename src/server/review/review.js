@@ -21,12 +21,7 @@ export const checkCanUserReview = async (productId) => {
     return res;
   } catch (error) {
     console.error("checkCanUserReview API error:", error);
-    return {
-      data: {
-        success: false,
-        data: { canReview: false, hasReviewed: false },
-      },
-    };
+    throw error;
   }
 };
 

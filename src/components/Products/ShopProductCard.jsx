@@ -111,7 +111,7 @@ const ShopProductCard = ({ product, viewMode }) => {
             src={coverImage}
             alt={product?.name || "Product"}
             className={`w-full ${
-              viewMode === "list" ? "h-56 sm:h-full" : "h-64"
+              viewMode === "list" ? "h-56" : "h-64"
             } object-cover group-hover:scale-105 transition-transform duration-300 cursor-pointer`}
           />
         </Link>

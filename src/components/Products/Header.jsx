@@ -26,10 +26,12 @@ const Header = ({
         {/* Row 1 on mobile: Results Count & Grid/List Toggles (On sm+ screens, becomes full row with sorting) */}
         <div className="flex items-center justify-between gap-2">
           <p className="text-stone-600 text-xs sm:text-sm font-medium">
-            Showing <span className="font-bold text-stone-900">{currentCount}</span>{" "}
+            Showing{" "}
+            <span className="font-bold text-stone-900">{currentCount}</span>{" "}
             {totalResults > 0 ? (
               <>
-                of <span className="font-bold text-stone-900">{totalResults}</span>
+                of{" "}
+                <span className="font-bold text-stone-900">{totalResults}</span>
               </>
             ) : null}{" "}
             products
@@ -63,40 +65,39 @@ const Header = ({
             >
               <List className="w-4 h-4" />
             </button>
-          </div>
-        </div>
+            {/* Row 2 on mobile / controls bar on desktop: Filters button and Sort dropdown */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-stone-100">
+              {/* Mobile Filter Drawer Button (Visible on mobile/tablet up to lg) */}
+              <button
+                type="button"
+                onClick={onShowFilters}
+                className="lg:hidden flex items-center justify-center gap-2 py-2 px-3.5 bg-stone-50 hover:bg-stone-100 active:scale-98 border border-stone-200 rounded-xl text-xs font-semibold text-stone-800 transition cursor-pointer"
+              >
+                <SlidersHorizontal className="w-3.5 h-3.5 text-stone-700" />
+                <span>Filters</span>
+                {activeFiltersCount > 0 && (
+                  <span className="ml-1 px-1.5 py-0.5 bg-stone-900 text-white text-[10px] font-bold rounded-full">
+                    {activeFiltersCount}
+                  </span>
+                )}
+              </button>
 
-        {/* Row 2 on mobile / controls bar on desktop: Filters button and Sort dropdown */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-stone-100">
-          {/* Mobile Filter Drawer Button (Visible on mobile/tablet up to lg) */}
-          <button
-            type="button"
-            onClick={onShowFilters}
-            className="lg:hidden flex items-center justify-center gap-2 py-2 px-3.5 bg-stone-50 hover:bg-stone-100 active:scale-98 border border-stone-200 rounded-xl text-xs font-semibold text-stone-800 transition cursor-pointer"
-          >
-            <SlidersHorizontal className="w-3.5 h-3.5 text-stone-700" />
-            <span>Filters</span>
-            {activeFiltersCount > 0 && (
-              <span className="ml-1 px-1.5 py-0.5 bg-stone-900 text-white text-[10px] font-bold rounded-full">
-                {activeFiltersCount}
-              </span>
-            )}
-          </button>
-
-          {/* Sort Dropdown with custom chevron */}
-          <div className="relative flex-1 sm:flex-initial">
-            <select
-              value={sortBy || "default"}
-              onChange={(e) => onSortChange(e.target.value)}
-              className="w-full sm:w-auto min-w-[170px] appearance-none pl-3 pr-8 py-2 bg-white border border-stone-200 rounded-xl text-xs font-semibold text-stone-800 focus:outline-none focus:ring-1 focus:ring-stone-900 cursor-pointer shadow-xs"
-            >
-              <option value="default">Default sorting</option>
-              <option value="price_asc">Price: Low to High</option>
-              <option value="price_desc">Price: High to Low</option>
-              <option value="newest">Newest First</option>
-              <option value="top_rated">Top Rated</option>
-            </select>
-            <ChevronDown className="w-3.5 h-3.5 text-stone-500 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              {/* Sort Dropdown with custom chevron */}
+              <div className="relative flex-1 sm:flex-initial">
+                <select
+                  value={sortBy || "default"}
+                  onChange={(e) => onSortChange(e.target.value)}
+                  className="w-full sm:w-auto min-w-[170px] appearance-none pl-3 pr-8 py-2 bg-white border border-stone-200 rounded-xl text-xs font-semibold text-stone-800 focus:outline-none focus:ring-1 focus:ring-stone-900 cursor-pointer shadow-xs"
+                >
+                  <option value="default">Default sorting</option>
+                  <option value="price_asc">Price: Low to High</option>
+                  <option value="price_desc">Price: High to Low</option>
+                  <option value="newest">Newest First</option>
+                  <option value="top_rated">Top Rated</option>
+                </select>
+                <ChevronDown className="w-3.5 h-3.5 text-stone-500 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              </div>
+            </div>
           </div>
         </div>
       </div>

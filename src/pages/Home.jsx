@@ -5,12 +5,13 @@ import DiscountSection from "../components/home/DiscountSection";
 import PopularProduct from "../components/home/PopularProduct";
 import OfferSection from "../components/home/OfferSection";
 import FeaturedProduct from "../components/home/FeaturedProduct";
-import ShoeShowcase from "../components/home/ShoeShowcase ";
+import ShoeShowcase from "../components/home/ShoeShowcase";
 import Testimonials from "../components/home/Testimonials";
+import NewsletterSection from "../components/home/NewsletterSection";
 import api from "../api/index";
+import { getProducts } from "../server/product/product";
 import { PUBLIC_HOMEPAGE_SECTIONS_ENDPOINT } from "../endpoint";
 
-// Component Registry: Maps section types from backend CMS to actual React components
 const SECTION_REGISTRY = {
   banner: Banner,
   support: SupportSection,
@@ -20,10 +21,10 @@ const SECTION_REGISTRY = {
   featured_product: FeaturedProduct,
   shoe_showcase: ShoeShowcase,
   testimonials: Testimonials,
+  newsletter: NewsletterSection,
   custom_banner: OfferSection,
 };
 
-// Default fallback sequence if API is offline or loading
 const DEFAULT_SECTIONS = [
   { sectionKey: "banner", type: "banner", order: 1, isActive: true },
   { sectionKey: "support", type: "support", order: 2, isActive: true },
@@ -33,46 +34,100 @@ const DEFAULT_SECTIONS = [
   { sectionKey: "featured_product", type: "featured_product", order: 6, isActive: true },
   { sectionKey: "shoe_showcase", type: "shoe_showcase", order: 7, isActive: true },
   { sectionKey: "testimonials", type: "testimonials", order: 8, isActive: true },
+  { sectionKey: "newsletter", type: "newsletter", order: 9, isActive: true },
 ];
+
+const readProductList = (response) => {
+  const data = response?.data?.data;
+  return response?.data?.success && Array.isArray(data?.products)
+    ? data.products
+    : [];
+};
 
 const Home = () => {
   const [sections, setSections] = useState(DEFAULT_SECTIONS);
-  const [isLoading, setIsLoading] = useState(true);
+  const [productSets, setProductSets] = useState({ popular: [], featured: [] });
+  const [productsLoading, setProductsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchSections = async () => {
+    let cancelled = false;
+
+    const fetchHomepage = async () => {
+      let nextSections = DEFAULT_SECTIONS;
+
       try {
-        const res = await api.get(PUBLIC_HOMEPAGE_SECTIONS_ENDPOINT);
-        if (res.data?.success && Array.isArray(res.data.data) && res.data.data.length > 0) {
-          // Sort by order ascending
-          const sorted = [...res.data.data].sort((a, b) => (a.order || 0) - (b.order || 0));
-          setSections(sorted);
+        const response = await api.get(PUBLIC_HOMEPAGE_SECTIONS_ENDPOINT);
+        if (response.data?.success && Array.isArray(response.data.data)) {
+          nextSections = [...response.data.data].sort(
+            (a, b) => Number(a.order || 0) - Number(b.order || 0),
+          );
         }
-      } catch (err) {
-        console.warn("Using default homepage layout fallback:", err);
+      } catch (error) {
+        console.warn("Using default homepage layout fallback:", error);
+      }
+
+      if (cancelled) return;
+      setSections(nextSections);
+
+      const hasPopular = nextSections.some(
+        (section) => section.isActive && section.type === "popular_product",
+      );
+      const hasFeatured = nextSections.some(
+        (section) => section.isActive && section.type === "featured_product",
+      );
+
+      try {
+        const [popularResponse, featuredResponse] = await Promise.all([
+          hasPopular
+            ? getProducts({ page: 1, limit: 8, filters: { sortBy: "top_rated" } })
+            : Promise.resolve(null),
+          hasFeatured
+            ? getProducts({ page: 1, limit: 8, filters: { sortBy: "newest" } })
+            : Promise.resolve(null),
+        ]);
+
+        if (!cancelled) {
+          setProductSets({
+            popular: readProductList(popularResponse),
+            featured: readProductList(featuredResponse),
+          });
+        }
+      } catch (error) {
+        console.error("Could not load homepage products:", error);
       } finally {
-        setIsLoading(false);
+        if (!cancelled) setProductsLoading(false);
       }
     };
 
-    fetchSections();
+    fetchHomepage();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return (
-    <div>
+    <main className="w-full overflow-hidden">
       {sections.map((section) => {
-        if (!section.isActive) return null;
+        if (section.isActive === false) return null;
         const Component = SECTION_REGISTRY[section.type];
         if (!Component) return null;
+
+        const productProps =
+          section.type === "popular_product"
+            ? { products: productSets.popular, productsLoading }
+            : section.type === "featured_product"
+              ? { products: productSets.featured, productsLoading }
+              : {};
 
         return (
           <Component
             key={section._id || section.sectionKey || `sec-${section.order}`}
             {...(section.settings || {})}
+            {...productProps}
           />
         );
       })}
-    </div>
+    </main>
   );
 };
 

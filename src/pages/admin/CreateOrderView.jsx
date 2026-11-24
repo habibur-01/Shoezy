@@ -300,7 +300,7 @@ export const CreateOrderView = ({
           <code className="px-1.5 py-0.5 bg-zinc-100 rounded font-mono text-zinc-800">
             orders.create
           </code>{' '}
-          permission to manually intake social orders. Please switch to Store Manager or Super Admin via the persona selector above.
+          permission to manually intake social orders. Ask an administrator to grant that permission.
         </p>
         <button
           type="button"

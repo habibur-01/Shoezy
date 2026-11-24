@@ -3,7 +3,6 @@ import { AlertTriangle } from 'lucide-react';
 import { useAdmin } from '../context/AdminContext';
 import { RealtimeStatusBadge } from './header/RealtimeStatusBadge';
 import { NotificationsDropdown } from './header/NotificationsDropdown';
-import { PersonaSwitcher } from './header/PersonaSwitcher';
 
 
 
@@ -12,11 +11,6 @@ import { PersonaSwitcher } from './header/PersonaSwitcher';
 
 export const Header = ({ setActiveTab }) => {
   const {
-    currentUser,
-    currentRole,
-    teamMembers,
-    roles,
-    setCurrentUserId,
     isRealtimeActive,
     setIsRealtimeActive,
     realtimeAlerts,
@@ -25,7 +19,6 @@ export const Header = ({ setActiveTab }) => {
   } = useAdmin();
 
   const [isAlertsOpen, setIsAlertsOpen] = useState(false);
-  const [isPersonaOpen, setIsPersonaOpen] = useState(false);
 
   return (
     <div className="flex items-center justify-between h-16 px-3 sm:px-6 w-full text-zinc-900 dark:text-zinc-100">
@@ -57,7 +50,7 @@ export const Header = ({ setActiveTab }) => {
         )}
       </div>
 
-      {/* Right side: Alerts & Persona Switcher */}
+      {/* Right side: Alerts */}
       <div className="flex items-center gap-3">
         {/* Real-time Alerts Popover */}
         <NotificationsDropdown
@@ -69,18 +62,6 @@ export const Header = ({ setActiveTab }) => {
           onNavigateProducts={() => setActiveTab('products')}
         />
 
-        {/* Persona Switcher Dropdown */}
-        <PersonaSwitcher
-          isOpen={isPersonaOpen}
-          onToggle={() => setIsPersonaOpen(!isPersonaOpen)}
-          onClose={() => setIsPersonaOpen(false)}
-          currentUser={currentUser}
-          currentRole={currentRole}
-          teamMembers={teamMembers}
-          roles={roles}
-          onSelectPersona={(id) => setCurrentUserId(id)}
-          onNavigateRoles={() => setActiveTab('roles')}
-        />
       </div>
     </div>
   );

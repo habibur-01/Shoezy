@@ -19,8 +19,12 @@ export const RolesPermissionsView = () => {
     assignMemberRole,
     updateMemberStatus,
     inviteTeamMember,
-    currentUser
+    currentUser,
+    hasPermission,
   } = useAdmin();
+  const canManagePermissions = hasPermission('roles.manage_permissions');
+  const canCreateRole = hasPermission('roles.create_role');
+  const canInviteStaff = hasPermission('roles.invite_staff');
 
   // Selected view tab
   const [activeSubTab, setActiveSubTab] = useState('matrix');
@@ -114,6 +118,8 @@ export const RolesPermissionsView = () => {
     <div className="space-y-6">
       {/* Top Header */}
       <RolesHeader
+        canInviteStaff={canInviteStaff}
+        canCreateRole={canCreateRole}
         onOpenInviteModal={() => setIsInviteModalOpen(true)}
         onOpenCreateRoleModal={() => setIsNewRoleModalOpen(true)} />
       
@@ -133,6 +139,7 @@ export const RolesPermissionsView = () => {
           <PermissionsMatrixGrid
           roles={roles}
           categories={categories}
+          canManagePermissions={canManagePermissions}
           onTogglePermission={handleTogglePermission}
           onToggleCategoryForRole={handleToggleCategoryForRole} />
         
@@ -145,13 +152,14 @@ export const RolesPermissionsView = () => {
         teamMembers={teamMembers}
         roles={roles}
         currentUserId={currentUser.id}
+        canManageStaff={canManagePermissions}
         onAssignRole={assignMemberRole}
         onUpdateStatus={updateMemberStatus} />
 
       }
 
       {/* Modal: Create Custom Role */}
-      <CreateRoleModal
+      {canCreateRole && <CreateRoleModal
         isOpen={isNewRoleModalOpen}
         onClose={() => setIsNewRoleModalOpen(false)}
         newRoleName={newRoleName}
@@ -160,11 +168,11 @@ export const RolesPermissionsView = () => {
         setNewRoleDesc={setNewRoleDesc}
         newRolePermissions={newRolePermissions}
         setNewRolePermissions={setNewRolePermissions}
-        onSubmit={handleCreateRoleSubmit} />
+        onSubmit={handleCreateRoleSubmit} />}
       
 
       {/* Modal: Invite Team Member */}
-      <InviteMemberModal
+      {canInviteStaff && <InviteMemberModal
         isOpen={isInviteModalOpen}
         onClose={() => setIsInviteModalOpen(false)}
         inviteName={inviteName}
@@ -174,7 +182,7 @@ export const RolesPermissionsView = () => {
         inviteRoleId={inviteRoleId}
         setInviteRoleId={setInviteRoleId}
         roles={roles}
-        onSubmit={handleInviteSubmit} />
+        onSubmit={handleInviteSubmit} />}
       
     </div>);
 

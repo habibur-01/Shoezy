@@ -2,8 +2,8 @@ import React, { createContext, useContext, useState, useMemo, useEffect } from '
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import { setCategories as setReduxCategories } from '../redux/features/initial/initialSlice';
-import { INITIAL_ROLES, INITIAL_TEAM_MEMBERS } from '../data/mockData';
 import {
+  getMyAdminPermissions,
   getAdminRoles,
   getAdminStaffMembers,
   updateRolePermissionsApi,
@@ -52,51 +52,85 @@ export const AdminProvider = ({ children }) => {
   const authUser = useSelector((state) => state.auth?.user);
 
   // Team and RBAC state
-  const [roles, setRoles] = useState(INITIAL_ROLES);
-  const [teamMembers, setTeamMembers] = useState(INITIAL_TEAM_MEMBERS);
+  const [roles, setRoles] = useState([]);
+  const [teamMembers, setTeamMembers] = useState([]);
+  const [effectivePermissions, setEffectivePermissions] = useState([]);
+  const [effectiveRoleName, setEffectiveRoleName] = useState('');
+  const [isLoadingPermissions, setIsLoadingPermissions] = useState(true);
 
-  // Active User Persona / Member ID
-  const [currentUserId, setCurrentUserId] = useState(authUser?._id || authUser?.id || 'usr-admin');
+  const currentUserId = authUser?._id || authUser?.id || '';
 
-  // Sync currentUserId when authUser becomes available
-  useEffect(() => {
-    if (authUser) {
-      setCurrentUserId(authUser._id || authUser.id || 'usr-admin');
-    }
+  const currentUser = useMemo(() => {
+    if (!authUser) return null;
+
+    const authRoleId = String(authUser.roleId || '').toLowerCase();
+    const roleId = authUser.role === 'admin'
+      ? 'super_admin'
+      : authRoleId && !['user', 'customer'].includes(authRoleId)
+        ? authRoleId
+        : (authUser.role || '');
+
+    return {
+      id: authUser._id || authUser.id || '',
+      name: `${authUser.firstName || ''} ${authUser.lastName || ''}`.trim() || authUser.username || 'Staff member',
+      email: authUser.email || '',
+      avatar: authUser.avatar || '',
+      roleId,
+      role: authUser.role || '',
+      status: authUser.status || '',
+    };
   }, [authUser]);
 
-  // Active User derived dynamically from authenticated user or selected persona
-  const currentUser = useMemo(() => {
-    const matchedMember = teamMembers.find((m) => m.id === currentUserId);
-    if (matchedMember) {
-      return matchedMember;
-    }
-
-    if (authUser) {
-      return {
-        id: authUser._id || authUser.id || 'usr-admin',
-        name: `${authUser.firstName || ''} ${authUser.lastName || ''}`.trim() || authUser.username || 'Administrator',
-        email: authUser.email || '',
-        avatar: authUser.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
-        roleId: authUser.role === 'admin' ? 'super_admin' : (authUser.role || 'super_admin'),
-        role: authUser.role || 'admin',
-        status: authUser.status || 'active',
-      };
+  const currentRole = useMemo(() => {
+    if (!currentUser) return null;
+    const matchedRole = roles.find((role) =>
+      role.id === currentUser.roleId || role.roleId === currentUser.roleId
+    );
+    if (matchedRole) return matchedRole;
+    if (currentUser.role === 'admin' || currentUser.roleId === 'super_admin') {
+      return { id: 'super_admin', roleId: 'super_admin', name: 'Super Admin', permissions: [] };
     }
     return {
-      id: 'usr-admin',
-      name: 'Administrator',
-      email: 'admin@shoezy.com',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
-      roleId: 'super_admin',
-      role: 'admin',
-      status: 'active',
+      id: currentUser.roleId,
+      roleId: currentUser.roleId,
+      name: effectiveRoleName || currentUser.roleId || 'Staff member',
+      permissions: effectivePermissions,
     };
-  }, [authUser, currentUserId, teamMembers]);
+  }, [roles, currentUser, effectivePermissions, effectiveRoleName]);
 
-  const currentRole = useMemo(() => {
-    return roles.find((r) => r.id === currentUser?.roleId) || roles[0];
-  }, [roles, currentUser]);
+  useEffect(() => {
+    let isMounted = true;
+
+    if (!currentUserId || authUser?.role === 'admin') {
+      setEffectivePermissions([]);
+      setEffectiveRoleName(authUser?.role === 'admin' ? 'Super Admin' : '');
+      setIsLoadingPermissions(false);
+      return () => {
+        isMounted = false;
+      };
+    }
+
+    setIsLoadingPermissions(true);
+    getMyAdminPermissions()
+      .then((result) => {
+        if (!isMounted) return;
+        setEffectivePermissions(Array.isArray(result?.data?.permissions) ? result.data.permissions : []);
+        setEffectiveRoleName(result?.data?.roleName || '');
+      })
+      .catch((error) => {
+        if (!isMounted) return;
+        setEffectivePermissions([]);
+        setEffectiveRoleName('');
+        console.warn('Unable to load current staff permissions:', error?.message || error);
+      })
+      .finally(() => {
+        if (isMounted) setIsLoadingPermissions(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [currentUserId, authUser?.role]);
 
   // Catalog & Inventory state - Zero mock data, loaded directly from database
   const [products, setProducts] = useState([]);
@@ -226,6 +260,9 @@ export const AdminProvider = ({ children }) => {
 
   // Orders, Customers, Coupons, Audit - Zero demo data, purely real database records
   const [orders, setOrders] = useState([]);
+  const [orderStats, setOrderStats] = useState(null);
+  const [isLoadingOrders, setIsLoadingOrders] = useState(true);
+  const [ordersError, setOrdersError] = useState(null);
   const [customers, setCustomers] = useState([]);
   const [coupons, setCoupons] = useState([]);
   const [auditLogs, setAuditLogs] = useState([]);
@@ -309,11 +346,25 @@ export const AdminProvider = ({ children }) => {
     return newCarrier;
   };
 
-  // Load real orders from backend
-  const loadOrders = async () => {
+  // Load real orders from backend with optional filtering params
+  const loadOrders = async (params = {}) => {
+    setIsLoadingOrders(true);
+    setOrdersError(null);
     try {
-      const res = await getAdminOrders();
-      const ordersData = res?.data || (Array.isArray(res) ? res : []);
+      const res = await getAdminOrders(params);
+      const rawData = res?.data;
+      const ordersData = Array.isArray(rawData)
+        ? rawData
+        : Array.isArray(rawData?.orders)
+        ? rawData.orders
+        : Array.isArray(res)
+        ? res
+        : [];
+
+      if (rawData?.stats) {
+        setOrderStats(rawData.stats);
+      }
+
       if (Array.isArray(ordersData)) {
         const normalized = ordersData.map((o) => {
           const subtotal = Number(
@@ -401,9 +452,15 @@ export const AdminProvider = ({ children }) => {
           };
         });
         setOrders(normalized);
+        return { orders: normalized, stats: rawData?.stats, total: rawData?.total || normalized.length };
       }
+      return { orders: [], stats: null, total: 0 };
     } catch (err) {
       console.warn('API error loading orders:', err.message);
+      setOrdersError(err.message);
+      return { orders: [], error: err.message };
+    } finally {
+      setIsLoadingOrders(false);
     }
   };
 
@@ -595,9 +652,9 @@ export const AdminProvider = ({ children }) => {
   // PERMISSION ENGINE
   // ==========================================
   const hasPermission = (permissionKey) => {
-    if (!currentRole) return false;
-    if (currentRole.id === 'super_admin') return true;
-    return Boolean(currentRole.permissions?.includes(permissionKey));
+    if (!permissionKey || !currentUser) return false;
+    if (currentUser.role === 'admin' || currentUser.roleId === 'super_admin') return true;
+    return effectivePermissions.includes(permissionKey);
   };
 
   const assertPermission = (permissionKey, actionName = 'Administrative Action') => {
@@ -1374,7 +1431,11 @@ export const AdminProvider = ({ children }) => {
   const updateRolePermissions = async (roleId, newPermissions) => {
     // Optimistic UI update
     setRoles((prev) =>
-      prev.map((r) => (r.id === roleId ? { ...r, permissions: newPermissions } : r))
+      prev.map((r) =>
+        r.id === roleId || r.roleId === roleId || r._id === roleId
+          ? { ...r, permissions: newPermissions }
+          : r
+      )
     );
 
     try {
@@ -1519,11 +1580,11 @@ export const AdminProvider = ({ children }) => {
         // Metrics & Computed
         metrics,
 
-        // Current User & Persona
+        // Authenticated User
         currentUser,
         currentUserId,
-        setCurrentUserId,
         currentRole,
+        isLoadingPermissions,
 
         // Catalog & Products
         products,
@@ -1553,7 +1614,11 @@ export const AdminProvider = ({ children }) => {
 
         // Orders
         orders,
+        orderStats,
+        isLoadingOrders,
+        ordersError,
         refreshOrders: loadOrders,
+        loadOrders,
         updateOrderStatus,
         cancelAndRefundOrder,
         createOrder,

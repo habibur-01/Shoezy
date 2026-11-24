@@ -52,8 +52,9 @@ const PaymentMethod = ({ paymentMethod, trxId, setPaymentMethod, setErrorMsg, se
   useEffect(() => {
     if (gatewayCategories.length > 0 && !activeTab) {
       setActiveTab(gatewayCategories[0].code);
-      if (!paymentMethod && gatewayCategories[0].methods?.length > 0) {
-        setPaymentMethod(gatewayCategories[0].methods[0].code);
+      const availableMethod = gatewayCategories[0].methods?.find((method) => method.type !== "online");
+      if (!paymentMethod && availableMethod) {
+        setPaymentMethod(availableMethod.code);
       }
     }
   }, [gatewayCategories, activeTab, paymentMethod, setPaymentMethod]);
@@ -132,7 +133,8 @@ const PaymentMethod = ({ paymentMethod, trxId, setPaymentMethod, setErrorMsg, se
                     if (cat.methods && cat.methods.length > 0) {
                       const hasCurrent = cat.methods.some((m) => m.code === paymentMethod);
                       if (!hasCurrent) {
-                        handleMethodSelect(cat.methods[0].code);
+                        const availableMethod = cat.methods.find((method) => method.type !== "online");
+                        handleMethodSelect(availableMethod?.code || "");
                       }
                     }
                   }}
@@ -174,14 +176,16 @@ const PaymentMethod = ({ paymentMethod, trxId, setPaymentMethod, setErrorMsg, se
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                 {activeMethods.map((item) => {
                   const isSelected = paymentMethod === item.code;
+                  const isUnavailable = item.type === "online";
                   const iconSrc = item.icon || DEFAULT_ICONS[item.code];
                   const ItemIcon = getGatewayIcon(item.code);
 
                   return (
                     <div
                       key={item._id || item.code}
-                      onClick={() => handleMethodSelect(item.code)}
-                      className={`cursor-pointer rounded-xl p-4 flex items-center gap-3 transition-all ${
+                      onClick={() => !isUnavailable && handleMethodSelect(item.code)}
+                      aria-disabled={isUnavailable}
+                      className={`${isUnavailable ? "cursor-not-allowed opacity-60" : "cursor-pointer"} rounded-xl p-4 flex items-center gap-3 transition-all ${
                         isSelected
                           ? "bg-stone-900 text-white border-2 border-stone-900 shadow-md scale-[1.02]"
                           : "bg-white hover:bg-stone-50 border border-stone-200 text-stone-800 hover:border-stone-300"
@@ -210,7 +214,7 @@ const PaymentMethod = ({ paymentMethod, trxId, setPaymentMethod, setErrorMsg, se
                           } truncate`}
                         >
                           {item.type === "online"
-                            ? "Automated Portal"
+                            ? "Online checkout unavailable"
                             : item.requiresTxnId
                             ? "Manual Trx Required"
                             : "Pay on Delivery"}
@@ -237,7 +241,7 @@ const PaymentMethod = ({ paymentMethod, trxId, setPaymentMethod, setErrorMsg, se
             </div>
             {selectedMethodObj.type === "online" ? (
               <span className="inline-flex items-center gap-1 text-[10px] font-extrabold px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-700">
-                <Zap className="w-3 h-3" /> Automatic Instant Gateway
+                <Zap className="w-3 h-3" /> Not available yet
               </span>
             ) : selectedMethodObj.requiresTxnId ? (
               <span className="inline-flex items-center gap-1 text-[10px] font-extrabold px-2.5 py-1 rounded-full bg-amber-100 text-amber-800">
@@ -269,19 +273,15 @@ const PaymentMethod = ({ paymentMethod, trxId, setPaymentMethod, setErrorMsg, se
 
               <div className="flex flex-wrap gap-2">
                 {matchingSavedAccounts.map((acc) => (
-                  <button
+                  <div
                     key={acc._id}
-                    type="button"
-                    onClick={() => {
-                      handleTrxIdChange(`SAVED-${acc.accountNumber}`);
-                    }}
-                    className="px-3 py-1.5 bg-stone-50 hover:bg-stone-100 border border-stone-300 rounded-lg text-xs font-mono font-bold text-stone-900 flex items-center gap-2 transition cursor-pointer"
+                    className="px-3 py-1.5 bg-stone-50 border border-stone-300 rounded-lg text-xs font-mono font-bold text-stone-900 flex items-center gap-2"
                   >
                     <span>{acc.accountTitle}: {acc.accountNumber}</span>
                     {acc.isDefault && (
                       <span className="text-[9px] bg-stone-900 text-white px-1.5 py-0.5 rounded-md">Default</span>
                     )}
-                  </button>
+                  </div>
                 ))}
               </div>
             </div>
@@ -340,7 +340,7 @@ const PaymentMethod = ({ paymentMethod, trxId, setPaymentMethod, setErrorMsg, se
             <div className="p-3.5 bg-indigo-50/70 border border-indigo-100 rounded-xl flex items-center gap-3 text-indigo-950">
               <ShieldCheck className="w-5 h-5 text-indigo-600 shrink-0" />
               <p className="text-[11px] leading-snug">
-                You will be redirected securely to the <strong>{selectedMethodObj.name}</strong> payment gateway portal page upon clicking Confirm & Place Order.
+                Online card processing is not configured yet. Choose Cash on Delivery or a manual payment method to place your order.
               </p>
             </div>
           )}

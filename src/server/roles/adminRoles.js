@@ -1,5 +1,14 @@
 import api from "../../api/index";
-import { ADMIN_ROLES_ENDPOINT, ADMIN_ROLES_STAFF_ENDPOINT } from "../../endpoint";
+import {
+  ADMIN_ROLES_ENDPOINT,
+  ADMIN_ROLES_MY_PERMISSIONS_ENDPOINT,
+  ADMIN_ROLES_STAFF_ENDPOINT,
+} from "../../endpoint";
+
+export const getMyAdminPermissions = async () => {
+  const response = await api.get(ADMIN_ROLES_MY_PERMISSIONS_ENDPOINT);
+  return response.data;
+};
 
 /**
  * Fetch all roles (Admin)
@@ -117,3 +126,43 @@ export const inviteStaffMemberApi = async (staffData) => {
     throw error;
   }
 };
+
+/**
+ * Get role permissions for a specific role (Admin)
+ */
+export const getRolePermissionsApi = async (roleId) => {
+  try {
+    const response = await api.get(`${ADMIN_ROLES_ENDPOINT}/${roleId}/permissions`);
+    return response.data;
+  } catch (error) {
+    console.error("getRolePermissionsApi error:", error);
+    throw error;
+  }
+};
+
+/**
+ * Batch update role permissions across multiple roles (Admin)
+ */
+export const batchUpdateRolePermissionsApi = async (updates) => {
+  try {
+    const response = await api.post(`${ADMIN_ROLES_ENDPOINT}/permissions/batch`, { updates });
+    return response.data;
+  } catch (error) {
+    console.error("batchUpdateRolePermissionsApi error:", error);
+    throw error;
+  }
+};
+
+/**
+ * Get effective permissions for a specific staff member (Admin)
+ */
+export const getStaffPermissionsApi = async (userId) => {
+  try {
+    const response = await api.get(`${ADMIN_ROLES_STAFF_ENDPOINT}/${userId}/permissions`);
+    return response.data;
+  } catch (error) {
+    console.error("getStaffPermissionsApi error:", error);
+    throw error;
+  }
+};
+

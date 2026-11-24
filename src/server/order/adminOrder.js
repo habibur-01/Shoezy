@@ -2,14 +2,27 @@ import api from "../../api/index";
 import { ADMIN_ORDERS_ENDPOINT } from "../../endpoint";
 
 /**
- * Fetch all orders for admin operations
+ * Fetch all orders for admin operations with optional query parameters (status, search, page, limit, etc.)
  */
-export const getAdminOrders = async () => {
+export const getAdminOrders = async (params = {}) => {
   try {
-    const response = await api.get(ADMIN_ORDERS_ENDPOINT);
+    const response = await api.get(ADMIN_ORDERS_ENDPOINT, { params });
     return response.data;
   } catch (error) {
     console.error("getAdminOrders error:", error);
+    throw error;
+  }
+};
+
+/**
+ * Fetch single order by ID with populated details
+ */
+export const getAdminOrderById = async (orderId) => {
+  try {
+    const response = await api.get(`${ADMIN_ORDERS_ENDPOINT}/${orderId}`);
+    return response.data;
+  } catch (error) {
+    console.error("getAdminOrderById error:", error);
     throw error;
   }
 };

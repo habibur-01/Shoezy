@@ -11,6 +11,8 @@ import {
   ChevronDown,
   ChevronRight,
   MapPin,
+  Sparkles,
+  Package,
 } from "lucide-react";
 
 const MobileNavbar = ({
@@ -27,17 +29,9 @@ const MobileNavbar = ({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState({});
-  const [expandedSubCategories, setExpandedSubCategories] = useState({});
 
   const toggleCategoryExpand = (id) => {
     setExpandedCategories((prev) => ({
-      ...prev,
-      [id]: !prev[id],
-    }));
-  };
-
-  const toggleSubCategoryExpand = (id) => {
-    setExpandedSubCategories((prev) => ({
       ...prev,
       [id]: !prev[id],
     }));
@@ -49,298 +43,251 @@ const MobileNavbar = ({
   };
 
   return (
-    <div className="lg:hidden w-full bg-[var(--color-background)] border-b border-stone-200/60 shadow-xs">
+    <div className="lg:hidden w-full bg-white border-b border-stone-200/80 shadow-2xs">
       {/* Mobile Top Header */}
       <div className="h-16 px-4 flex justify-between items-center">
         {/* Left: Mobile Hamburger Toggle */}
         <button
           onClick={() => setMobileMenuOpen(true)}
-          className="p-2 text-stone-800 hover:text-black rounded-lg transition cursor-pointer"
+          className="p-2 text-stone-900 hover:text-orange-600 rounded-xl transition cursor-pointer"
           aria-label="Open Mobile Menu"
         >
-          <Menu className="w-6 h-6" />
+          <Menu className="w-5 h-5" />
         </button>
 
         {/* Center: Shoezy Brand Logo */}
         <Link to="/" className="flex items-center">
-          <h1 className="text-2xl text-stone-900 font-extrabold tracking-tight">
-            Shoezy
-          </h1>
+          <span className="font-black text-xl tracking-tighter text-stone-950">
+            SHOEZY<span className="text-orange-600">.</span>
+          </span>
         </Link>
 
-        {/* Right Action Icons: Search, User Profile Avatar, Cart Badge */}
+        {/* Right Action Icons: Search, Wishlist, Cart */}
         <div className="flex items-center gap-x-2">
           {/* Mobile Search Toggle */}
           <button
             onClick={() => setMobileSearchOpen(!mobileSearchOpen)}
-            className="p-2 text-stone-800 hover:text-black rounded-lg transition cursor-pointer"
+            className="p-2 text-stone-800 hover:text-orange-600 rounded-xl transition cursor-pointer"
             aria-label="Toggle Search"
           >
-            <Search className="w-5 h-5" />
+            <Search className="w-4 h-4" />
           </button>
 
-          {/* User Profile Avatar Link */}
-          {hasUser ? (
-            <Link
-              to="/account/profile"
-              className="p-1 rounded-full border border-stone-300 flex items-center justify-center"
-            >
-              {user?.avatar ? (
-                <img
-                  src={user.avatar}
-                  alt="Avatar"
-                  className="w-7 h-7 rounded-full object-cover"
-                />
-              ) : (
-                <div className="w-7 h-7 rounded-full bg-stone-900 text-white font-bold text-xs flex items-center justify-center uppercase">
-                  {user?.firstName ? user.firstName[0] : (user?.username ? user.username[0] : <User className="w-3.5 h-3.5" />)}
-                </div>
-              )}
-            </Link>
-          ) : (
-            <Link to="/login" className="p-2 text-stone-800 hover:text-black transition cursor-pointer">
-              <User className="w-5 h-5" />
-            </Link>
-          )}
-
-          {/* Wishlist Badge Icon */}
+          {/* Wishlist Icon */}
           <Link
             to="/account/wishlist"
-            className="relative p-2 text-stone-900 flex items-center cursor-pointer"
+            className="relative p-2 text-stone-800 hover:text-orange-600 rounded-xl transition cursor-pointer"
           >
-            <Heart className="w-5 h-5 text-stone-800 hover:text-black" />
-            <span className="bg-stone-900 text-white text-[10px] font-extrabold w-4 h-4 rounded-full flex items-center justify-center absolute -top-0.5 -right-0.5">
-              {wishlistItemNum || 0}
-            </span>
+            <Heart className="w-4 h-4" />
+            {wishlistItemNum > 0 && (
+              <span className="absolute top-1 right-1 bg-orange-600 text-white text-[9px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center">
+                {wishlistItemNum}
+              </span>
+            )}
           </Link>
 
-          {/* Cart Badge Icon */}
+          {/* Cart Icon */}
           <Link
             to="/account/mycart"
-            className="relative p-2 text-stone-900 flex items-center cursor-pointer"
+            className="relative p-2 text-stone-800 hover:text-orange-600 rounded-xl transition cursor-pointer"
           >
-            <ShoppingBag className="w-5 h-5" />
-            <span className="bg-stone-900 text-white text-[10px] font-extrabold w-4 h-4 rounded-full flex items-center justify-center absolute -top-0.5 -right-0.5">
-              {cartItemNum || 0}
-            </span>
+            <ShoppingBag className="w-4 h-4" />
+            {cartItemNum > 0 && (
+              <span className="absolute top-1 right-1 bg-orange-600 text-white text-[9px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center">
+                {cartItemNum}
+              </span>
+            )}
           </Link>
         </div>
       </div>
 
-      {/* Expandable Mobile Search Field */}
+      {/* Expandable Mobile Search Bar */}
       {mobileSearchOpen && (
-        <div className="border-t border-stone-200 bg-white p-3 px-4 animate-in slide-in-from-top duration-200">
-          <form onSubmit={(e) => {
-            setMobileSearchOpen(false);
-            handleSearchSubmit(e);
-          }} className="relative">
+        <div className="px-4 pb-3 pt-1 border-t border-stone-100 bg-stone-50/80 animate-in fade-in duration-200">
+          <form onSubmit={handleSearchSubmit} className="relative">
             <input
               type="text"
-              placeholder="Search products..."
+              placeholder="Search shoes, trail, race..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full h-10 pl-4 pr-10 rounded-full bg-stone-100 text-xs font-medium outline-none border border-stone-300 focus:border-black"
-              autoFocus
+              className="w-full h-10 pl-9 pr-9 rounded-full bg-white text-xs border border-stone-300 focus:border-stone-500 outline-none shadow-2xs"
             />
-            <button
-              type="submit"
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-600 p-1 cursor-pointer"
-            >
-              <Search className="w-4 h-4" />
-            </button>
+            <Search className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-700"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
           </form>
         </div>
       )}
 
-      {/* Slide-over Mobile Navigation Drawer */}
+      {/* Slide-out Mobile Navigation Drawer */}
       {mobileMenuOpen && (
         <div className="fixed inset-0 z-50 flex">
           {/* Backdrop */}
           <div
-            className="fixed inset-0 bg-stone-900/60 backdrop-blur-xs transition-opacity animate-in fade-in duration-200"
+            className="fixed inset-0 bg-stone-950/60 backdrop-blur-xs transition-opacity"
             onClick={() => setMobileMenuOpen(false)}
           />
 
-          {/* Mobile Drawer Panel */}
-          <div className="relative w-full max-w-xs bg-white h-full shadow-2xl flex flex-col z-10 animate-in slide-in-from-left duration-300">
-            {/* Header */}
-            <div className="p-4 border-b border-stone-200 flex justify-between items-center bg-stone-50">
-              <h2 className="text-lg font-bold text-stone-900">Navigation</h2>
-              <button
-                onClick={() => setMobileMenuOpen(false)}
-                className="p-1 rounded-full hover:bg-stone-200 text-stone-600 transition cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
+          {/* Drawer Body */}
+          <div className="relative w-4/5 max-w-xs bg-white h-full shadow-2xl flex flex-col justify-between z-10 animate-in slide-in-from-left duration-250">
+            {/* Drawer Header */}
+            <div>
+              <div className="flex items-center justify-between p-4 border-b border-stone-100 bg-stone-950 text-white">
+                <span className="font-black text-lg tracking-tighter">
+                  SHOEZY<span className="text-orange-500">.</span>
+                </span>
+                <button
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="p-1.5 text-stone-400 hover:text-white rounded-lg transition"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
 
-            {/* Nav Links & Categories Accordions */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              <nav>
-                <ul className="space-y-1">
-                  <li>
-                    <NavLink
-                      to="/"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className={({ isActive }) =>
-                        `px-4 py-2.5 rounded-xl font-bold text-sm block transition-colors ${
-                          isActive ? "bg-stone-900 text-white" : "text-stone-800 hover:bg-stone-100"
-                        }`
-                      }
-                    >
-                      Home
-                    </NavLink>
-                  </li>
+              {/* Navigation Links */}
+              <div className="p-4 space-y-1 overflow-y-auto max-h-[calc(100vh-180px)]">
+                <NavLink
+                  to="/"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block px-3 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider text-stone-900 hover:bg-stone-50"
+                >
+                  Home
+                </NavLink>
 
-                  {/* Categories Accordion */}
-                  {categories.length > 0 &&
-                    categories.map((cat) => {
-                      const catId = cat._id || cat.id;
-                      const subList = cat.subcategories || cat.subCategories || [];
-                      return (
-                        <li key={catId} className="space-y-1">
-                          <div className="flex items-center justify-between px-4 py-2.5 rounded-xl hover:bg-stone-100 transition">
+                {/* Categories */}
+                {categories.map((cat) => {
+                  const catId = cat._id || cat.id;
+                  const isExpanded = !!expandedCategories[catId];
+                  const subs = cat.subcategories || cat.subCategories || [];
+
+                  return (
+                    <div key={catId} className="border-b border-stone-100 pb-1">
+                      <div className="flex items-center justify-between py-2 px-3">
+                        <Link
+                          to={`/products?category=${cat.slug}`}
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="font-bold text-xs uppercase tracking-wider text-stone-900 hover:text-orange-600"
+                        >
+                          {cat.name}
+                        </Link>
+                        {subs.length > 0 && (
+                          <button
+                            onClick={() => toggleCategoryExpand(catId)}
+                            className="p-1 text-stone-400 hover:text-stone-700"
+                          >
+                            <ChevronDown
+                              className={`w-4 h-4 transition-transform duration-200 ${
+                                isExpanded ? "rotate-180 text-orange-600" : ""
+                              }`}
+                            />
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Subcategories */}
+                      {isExpanded && subs.length > 0 && (
+                        <div className="pl-5 pr-2 py-1 space-y-1 bg-stone-50/70 rounded-xl">
+                          {subs.map((sub) => (
                             <Link
-                              to={`/products?category=${cat.slug}`}
+                              key={sub._id || sub.id}
+                              to={`/products?category=${cat.slug}&sub-category=${sub.slug}`}
                               onClick={() => setMobileMenuOpen(false)}
-                              className="font-bold text-sm text-stone-800 capitalize flex-1"
+                              className="block py-1.5 px-2 text-xs font-medium text-stone-600 hover:text-orange-600"
                             >
-                              {cat.name}
+                              {sub.name}
                             </Link>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
 
-                            {subList.length > 0 && (
-                              <button
-                                onClick={() => toggleCategoryExpand(catId)}
-                                className="p-1 text-stone-500 hover:text-black cursor-pointer"
-                              >
-                                {expandedCategories[catId] ? (
-                                  <ChevronDown className="w-4 h-4" />
-                                ) : (
-                                  <ChevronRight className="w-4 h-4" />
-                                )}
-                              </button>
-                            )}
-                          </div>
+                <NavLink
+                  to="/outlets"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block px-3 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider text-stone-900 hover:bg-stone-50"
+                >
+                  Our Outlets
+                </NavLink>
 
-                          {/* Subcategories */}
-                          {subList.length > 0 && expandedCategories[catId] && (
-                            <ul className="pl-4 space-y-1 border-l-2 border-stone-200 ml-4 py-1">
-                              {subList.map((sub) => {
-                                const subId = sub._id || sub.id;
-                                const childList = sub.childCategories || sub.childcategories || [];
-                                const hasChildren = childList.length > 0;
-                                const isSubExpanded = expandedSubCategories[subId];
-
-                                return (
-                                  <li key={subId} className="space-y-1">
-                                    <div className="flex items-center justify-between px-3 py-1.5 rounded-lg hover:bg-stone-100 transition">
-                                      <Link
-                                        to={`/products?category=${cat.slug}&sub-category=${sub.slug}`}
-                                        onClick={() => setMobileMenuOpen(false)}
-                                        className="text-xs font-semibold text-stone-700 hover:text-black block capitalize flex-1"
-                                      >
-                                        {sub.name}
-                                      </Link>
-
-                                      {hasChildren && (
-                                        <button
-                                          onClick={() => toggleSubCategoryExpand(subId)}
-                                          className="p-1 text-stone-400 hover:text-black cursor-pointer"
-                                        >
-                                          {isSubExpanded ? (
-                                            <ChevronDown className="w-3.5 h-3.5" />
-                                          ) : (
-                                            <ChevronRight className="w-3.5 h-3.5" />
-                                          )}
-                                        </button>
-                                      )}
-                                    </div>
-
-                                    {/* Child Categories */}
-                                    {hasChildren && isSubExpanded && (
-                                      <ul className="pl-4 space-y-1 border-l-2 border-stone-200 ml-3 py-1">
-                                        {childList.map((child) => (
-                                          <li key={child._id || child.id}>
-                                            <Link
-                                              to={`/products?category=${cat.slug}&sub-category=${sub.slug}&child-category=${child.slug}`}
-                                              onClick={() => setMobileMenuOpen(false)}
-                                              className="text-[11px] text-stone-600 hover:text-orange-600 block py-1 capitalize"
-                                            >
-                                              {child.name}
-                                            </Link>
-                                          </li>
-                                        ))}
-                                      </ul>
-                                    )}
-                                  </li>
-                                );
-                              })}
-                            </ul>
-                          )}
-                        </li>
-                      );
-                    })}
-
-                  <li>
-                    <NavLink
-                      to="/outlets"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className={({ isActive }) =>
-                        `px-4 py-2.5 rounded-xl font-bold text-sm block transition-colors flex items-center gap-2 ${
-                          isActive ? "bg-stone-900 text-white" : "text-stone-800 hover:bg-stone-100"
-                        }`
-                      }
-                    >
-                      <MapPin className="w-4 h-4" />
-                      <span>Our Outlets</span>
-                    </NavLink>
-                  </li>
-                </ul>
-              </nav>
+                <NavLink
+                  to="/products?discount=true"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider text-orange-600 bg-orange-50/60"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>Special Offers & Sale</span>
+                </NavLink>
+              </div>
             </div>
 
-            {/* Footer User Account Details */}
-            <div className="p-4 border-t border-stone-200 bg-stone-50 space-y-2">
+            {/* Drawer Footer / Profile Links */}
+            <div className="p-4 border-t border-stone-100 bg-stone-50/80">
               {hasUser ? (
-                <>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2.5 mb-2">
+                    <div className="w-8 h-8 rounded-full bg-stone-950 text-white font-bold text-xs flex items-center justify-center uppercase">
+                      {user?.firstName ? user.firstName[0] : (user?.username ? user.username[0] : "U")}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-bold text-stone-900 truncate">
+                        {user?.firstName ? `${user.firstName} ${user.lastName || ""}` : (user?.username || "Shoezy Member")}
+                      </p>
+                      <p className="text-[10px] text-stone-500 truncate">{user?.email}</p>
+                    </div>
+                  </div>
+
                   <Link
                     to="/account/profile"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-3 px-3 py-2.5 bg-white border border-stone-200 rounded-xl text-xs font-bold text-stone-900 hover:bg-stone-100 transition shadow-2xs"
+                    className="flex items-center gap-2 py-1.5 text-xs font-semibold text-stone-700 hover:text-stone-950"
                   >
-                    {user?.avatar ? (
-                      <img
-                        src={user.avatar}
-                        alt="Avatar"
-                        className="w-7 h-7 rounded-full object-cover border border-stone-200"
-                      />
-                    ) : (
-                      <div className="w-7 h-7 rounded-full bg-stone-900 text-white font-bold text-xs flex items-center justify-center uppercase">
-                        {user?.firstName ? user.firstName[0] : (user?.username ? user.username[0] : <User className="w-3.5 h-3.5" />)}
-                      </div>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <p className="truncate">{user?.firstName ? `${user.firstName} ${user.lastName || ''}` : 'My Account'}</p>
-                      <p className="text-[10px] text-stone-400 font-normal truncate">{user?.email}</p>
-                    </div>
+                    <User className="w-3.5 h-3.5" />
+                    <span>My Account</span>
                   </Link>
+
+                  <Link
+                    to="/account/myorders"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-2 py-1.5 text-xs font-semibold text-stone-700 hover:text-stone-950"
+                  >
+                    <Package className="w-3.5 h-3.5" />
+                    <span>Orders & Returns</span>
+                  </Link>
+
                   <button
                     onClick={onLogoutClick}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-red-50 text-red-600 rounded-xl text-xs font-bold hover:bg-red-100 transition cursor-pointer"
+                    className="flex items-center gap-2 py-1.5 text-xs font-bold text-rose-600 hover:text-rose-700 w-full text-left"
                   >
-                    <LogOut className="w-4 h-4" />
-                    <span>Logout</span>
+                    <LogOut className="w-3.5 h-3.5" />
+                    <span>Sign Out</span>
                   </button>
-                </>
+                </div>
               ) : (
-                <Link
-                  to="/login"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-stone-900 text-white rounded-xl text-xs font-bold hover:bg-stone-800 transition"
-                >
-                  <User className="w-4 h-4" />
-                  <span>Login / Register</span>
-                </Link>
+                <div className="space-y-2">
+                  <Link
+                    to="/login"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block w-full py-2.5 bg-stone-950 hover:bg-stone-800 text-white font-bold text-xs uppercase tracking-wider text-center rounded-xl transition shadow-xs"
+                  >
+                    Sign In
+                  </Link>
+                  <Link
+                    to="/signup"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block w-full py-2 text-center text-xs font-bold text-stone-600 hover:text-stone-900"
+                  >
+                    Create Account
+                  </Link>
+                </div>
               )}
             </div>
           </div>

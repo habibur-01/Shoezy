@@ -13,6 +13,7 @@ export const StaffMembersTable = ({
   teamMembers,
   roles,
   currentUserId,
+  canManageStaff,
   onAssignRole,
   onUpdateStatus
 }) => {
@@ -70,6 +71,7 @@ export const StaffMembersTable = ({
                     <select
                       id={`select-role-for-${member.id}`}
                       value={member.roleId}
+                      disabled={!canManageStaff}
                       onChange={(e) => onAssignRole(member.id, e.target.value)}
                       className="px-2 py-1 text-xs border border-zinc-200 rounded-md bg-white font-medium text-zinc-800 focus:ring-2 focus:ring-zinc-900 cursor-pointer">
                       
@@ -90,6 +92,7 @@ export const StaffMembersTable = ({
                     <select
                       id={`select-status-for-${member.id}`}
                       value={member.status}
+                      disabled={!canManageStaff}
                       onChange={(e) =>
                       onUpdateStatus(
                         member.id,

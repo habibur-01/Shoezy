@@ -20,6 +20,7 @@ const ReviewsSection = ({ productId }) => {
   const [canReview, setCanReview] = useState(false);
   const [hasReviewed, setHasReviewed] = useState(false);
   const [checkingEligibility, setCheckingEligibility] = useState(false);
+  const [eligibilityError, setEligibilityError] = useState(false);
 
   // Form State
   const [rating, setRating] = useState(5);
@@ -48,10 +49,12 @@ const ReviewsSection = ({ productId }) => {
     if (!hasUser || !productId) {
       setCanReview(false);
       setHasReviewed(false);
+      setEligibilityError(false);
       return;
     }
     try {
       setCheckingEligibility(true);
+      setEligibilityError(false);
       const res = await checkCanUserReview(productId);
       if (res?.data?.success) {
         const { canReview, hasReviewed, existingReview } = res.data.data;
@@ -65,6 +68,9 @@ const ReviewsSection = ({ productId }) => {
       }
     } catch (err) {
       console.error("fetchEligibility error:", err);
+      setCanReview(false);
+      setHasReviewed(false);
+      setEligibilityError(true);
     } finally {
       setCheckingEligibility(false);
     }
@@ -225,6 +231,16 @@ const ReviewsSection = ({ productId }) => {
             <Loader2 className="w-4 h-4 animate-spin text-stone-900" />
             <span>Checking purchase eligibility...</span>
           </div>
+        ) : eligibilityError ? (
+          <div className="flex items-start justify-between gap-4 p-4 bg-red-50 border border-red-200 rounded-xl text-red-800">
+            <div className="flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+              <p className="text-xs">Could not verify your purchase status. Please try again.</p>
+            </div>
+            <button type="button" onClick={fetchEligibility} className="text-xs font-bold underline shrink-0">
+              Retry
+            </button>
+          </div>
         ) : !canReview ? (
           // Logged in BUT Not Purchased State
           <div className="flex items-start gap-3 p-4 bg-amber-50/70 border border-amber-200/80 rounded-xl text-amber-900">
@@ -234,7 +250,7 @@ const ReviewsSection = ({ productId }) => {
                 Verified Purchase Required
               </h4>
               <p className="text-xs text-amber-800 leading-relaxed font-medium">
-                Only customer accounts that have ordered and purchased this item can leave a review. Order this product to unlock verified customer review features!
+                Reviews are available after this product has been delivered to you.
               </p>
             </div>
           </div>
@@ -286,6 +302,8 @@ const ReviewsSection = ({ productId }) => {
               <label className="block text-xs font-bold text-stone-800">Your Feedback & Comment</label>
               <textarea
                 rows={3}
+                required
+                maxLength={2000}
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
                 placeholder="Write your experience with the quality, fit, or performance of this product..."

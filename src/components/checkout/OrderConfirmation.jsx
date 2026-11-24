@@ -2,7 +2,7 @@ import React from "react";
 import { CheckCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 
-const OrderConfirmation = ({ onClose }) => {
+const OrderConfirmation = ({ onClose, paymentMethod }) => {
     return (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50">
             {/* Modal Card */}
@@ -20,26 +20,28 @@ const OrderConfirmation = ({ onClose }) => {
 
                 {/* Message */}
                 <p className="text-center mt-2 text-[var(--text-gray)] text-sm leading-relaxed">
-                    Your order has been successfully placed. We will notify you once it is processed.
+                    {paymentMethod === "cod"
+                        ? "Your order is received. Payment is due when your delivery arrives."
+                        : "Your order is received. Your manual payment reference will be checked before payment is confirmed."}
                 </p>
 
                 {/* Buttons */}
                 <div className="mt-6 flex flex-col gap-3">
                     {/* Track Order */}
-                    <Link to={"/order"}>
+                    <Link to={"/account/myorders"} onClick={onClose}>
                         <button className="btn-black w-full rounded-lg">
                             Track Order
                         </button>
                     </Link>
                     {/* Continue Shopping */}
-                    <Link to={""}>
+                    <Link to={"/products"} onClick={onClose}>
                         <button className="btn-red w-full uppercase">
                             Continue Shopping
                         </button>
                     </Link>
 
                     {/* Home */}
-                    <Link to={"/products"}>
+                    <Link to={"/"} onClick={onClose}>
                         <button
                             className="w-full text-sm font-medium text-[var(--color-black)] underline hover:cursor-pointer"
                             onClick={onClose}
